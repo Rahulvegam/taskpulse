@@ -609,7 +609,82 @@ tr:hover td{background:#FAFBFF}
     </div>
   </div>
 
-<!-- MOBILE DRAWER NAV -->
+  <!-- ── SETTINGS (Admin only) ── -->
+  <div class="page" id="page-settings">
+    <div class="page-header">
+      <div><div class="page-title">Settings</div><div class="page-sub">Configure dropdown options used across the app</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px" id="settings-grid"></div>
+  </div>
+
+  <!-- ── TEAMS (Admin only) ── -->
+  <div class="page" id="page-teams">
+    <div class="page-header">
+      <div><div class="page-title">Teams</div><div class="page-sub">Create and manage teams, assign members</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openTeamModal()">＋ Create Team</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px" id="teams-grid"></div>
+  </div>
+
+<!-- TEAM MODAL -->
+<div class="modal-overlay" id="team-modal">
+  <div class="modal" style="width:520px">
+    <div class="modal-head">
+      <div><div class="modal-title" id="team-modal-title">Create Team</div><div class="modal-sub">Add a name, color and assign members</div></div>
+      <button class="modal-close" onclick="closeTeamModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-team-id"/>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="form-group">
+          <label class="form-label">Team Name <em style="color:var(--accent)">*</em></label>
+          <input class="form-input" id="tm-name" placeholder="e.g. BASF Team"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Color</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="color" id="tm-color" value="#4F46E5" style="width:44px;height:38px;border:1.5px solid var(--border);border-radius:var(--radius-xs);cursor:pointer;padding:2px"/>
+            <div id="tm-color-preview" style="flex:1;height:38px;border-radius:var(--radius-xs);background:#4F46E5;transition:background 0.2s"></div>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Description</label>
+          <input class="form-input" id="tm-desc" placeholder="Optional team description"/>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label class="form-label">Assign Members</label>
+        <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-xs);max-height:200px;overflow-y:auto;padding:10px" id="tm-members-list"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="closeTeamModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveTeam()">Save Team</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS ADD VALUE MODAL -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal" style="width:400px">
+    <div class="modal-head">
+      <div><div class="modal-title" id="settings-modal-title">Add Value</div></div>
+      <button class="modal-close" onclick="$('settings-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="settings-category"/>
+      <input type="hidden" id="settings-edit-id"/>
+      <div class="form-group" style="margin-bottom:20px">
+        <label class="form-label">Value <em style="color:var(--accent)">*</em></label>
+        <input class="form-input" id="settings-value" placeholder="Enter value..."/>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="$('settings-modal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSettingValue()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="mobile-nav-drawer">
   <div class="drawer-backdrop" onclick="closeDrawer()"></div>
   <div class="drawer-panel">
@@ -984,8 +1059,10 @@ function buildNav(){
   }
   if(r==='admin'){
     tabs.push({id:'users',label:'👥 Users'});
+    tabs.push({id:'teams',label:'🏷 Teams'});
+    tabs.push({id:'settings',label:'⚙ Settings'});
   }
-  tabs.push({id:'profile',label:'⚙ Profile'});
+  tabs.push({id:'profile',label:'👤 Profile'});
   $('nav-tabs').innerHTML = tabs.map(t=>`<button class="nav-tab" id="nav-${t.id}" onclick="showPage('${t.id}')">${t.label}</button>`).join('');
 }
 
@@ -1001,6 +1078,8 @@ function _showPageCore(id){
   if(id==='tasks') loadAllTasks();
   if(id==='my-tasks') loadMyTasks();
   if(id==='users') loadUsers();
+  if(id==='teams') loadTeams();
+  if(id==='settings') loadSettings();
 }
 
 // ══════════════════════════════════════════
@@ -1214,7 +1293,13 @@ async function openTaskModal(){
   $('f-tracker-id').value=''; $('f-title').value=''; $('f-desc').value='';
   $('f-project').value=''; $('f-type').value=''; $('f-complexity').value='';
   $('f-hours').value=''; $('f-start').value=today(); $('f-end').value='';
-  $('f-status-modal').value='Yet to Start'; $('f-lld').value=''; $('f-comments').value='';
+  $('f-status-modal').value=''; $('f-lld').value=''; $('f-comments').value='';
+  // Load dynamic options from settings
+  await loadAppSettings();
+  document.getElementById('f-project').innerHTML = getOptionsHTML('project');
+  document.getElementById('f-type').innerHTML = getOptionsHTML('task_type');
+  document.getElementById('f-complexity').innerHTML = getOptionsHTML('complexity');
+  document.getElementById('f-status-modal').innerHTML = getOptionsHTML('status','Yet to Start');
   // Populate assignee dropdown
   const wrap=$('f-assignee-wrap');
   if(currentProfile.role==='admin'||currentProfile.role==='manager'){
@@ -1235,15 +1320,17 @@ async function openEditTask(id){
   $('f-tracker-id').value=t.tracker_id||'';
   $('f-title').value=t.title||'';
   $('f-desc').value=t.description||'';
-  $('f-project').value=t.project||'';
-  $('f-type').value=t.task_type||'';
-  $('f-complexity').value=t.complexity||'';
   $('f-hours').value=t.estimated_hours||'';
   $('f-start').value=t.start_date||'';
   $('f-end').value=t.end_date||'';
-  $('f-status-modal').value=t.status||'Yet to Start';
   $('f-lld').value=t.lld||'';
   $('f-comments').value=t.comments||'';
+  // Load dynamic options
+  await loadAppSettings();
+  document.getElementById('f-project').innerHTML = getOptionsHTML('project', t.project||'');
+  document.getElementById('f-type').innerHTML = getOptionsHTML('task_type', t.task_type||'');
+  document.getElementById('f-complexity').innerHTML = getOptionsHTML('complexity', t.complexity||'');
+  document.getElementById('f-status-modal').innerHTML = getOptionsHTML('status', t.status||'Yet to Start');
   const wrap=$('f-assignee-wrap');
   if(currentProfile.role==='admin'||currentProfile.role==='manager'){
     wrap.style.display='flex';
@@ -1523,10 +1610,10 @@ $('si-email').addEventListener('keydown',e=>{ if(e.key==='Enter') signIn(); });
 // MOBILE NAV
 // ══════════════════════════════════════════
 const MOBILE_TABS = {
-  admin:    [{id:'dashboard',icon:'📊',label:'Dashboard'},{id:'tasks',icon:'📋',label:'Tasks'},{id:'users',icon:'👥',label:'Users'},{id:'profile',icon:'⚙',label:'Profile'}],
-  manager:  [{id:'dashboard',icon:'📊',label:'Dashboard'},{id:'tasks',icon:'📋',label:'Tasks'},{id:'profile',icon:'⚙',label:'Profile'}],
-  developer:[{id:'my-tasks',icon:'📋',label:'My Tasks'},{id:'profile',icon:'⚙',label:'Profile'}],
-  tester:   [{id:'my-tasks',icon:'📋',label:'My Tasks'},{id:'profile',icon:'⚙',label:'Profile'}],
+  admin:    [{id:'dashboard',icon:'📊',label:'Dashboard'},{id:'tasks',icon:'📋',label:'Tasks'},{id:'users',icon:'👥',label:'Users'},{id:'teams',icon:'🏷',label:'Teams'},{id:'settings',icon:'⚙',label:'Settings'},{id:'profile',icon:'👤',label:'Profile'}],
+  manager:  [{id:'dashboard',icon:'📊',label:'Dashboard'},{id:'tasks',icon:'📋',label:'Tasks'},{id:'profile',icon:'👤',label:'Profile'}],
+  developer:[{id:'my-tasks',icon:'📋',label:'My Tasks'},{id:'profile',icon:'👤',label:'Profile'}],
+  tester:   [{id:'my-tasks',icon:'📋',label:'My Tasks'},{id:'profile',icon:'👤',label:'Profile'}],
 };
 
 function buildMobileNav(){
@@ -1580,10 +1667,239 @@ function wrapTables(){
     }
   });
 }
+// ══════════════════════════════════════════
+// SETTINGS — configurable dropdowns
+// ══════════════════════════════════════════
+let appSettings = {}; // {project:[], task_type:[], ...}
+
+const SETTING_CATEGORIES = [
+  {key:'project',      label:'🏗 Projects',        desc:'Projects users can select in task forms'},
+  {key:'task_type',    label:'📋 Task Types',       desc:'Types of tasks (CR, Bug, New Project etc.)'},
+  {key:'complexity',   label:'⚡ Complexity Levels', desc:'Priority/complexity options'},
+  {key:'status',       label:'🔄 Status Values',    desc:'Task status options'},
+  {key:'severity',     label:'🚨 Severity Levels',  desc:'Severity for testers (Critical, High etc.)'},
+  {key:'team',         label:'👥 Teams List',        desc:'Team names shown in dropdowns'},
+];
+
+async function loadSettings(){
+  const {data} = await sb.from('settings').select('*').order('sort_order');
+  appSettings = {};
+  (data||[]).forEach(s=>{ if(!appSettings[s.category]) appSettings[s.category]=[]; appSettings[s.category].push(s); });
+  renderSettingsGrid();
+}
+
+function renderSettingsGrid(){
+  $('settings-grid').innerHTML = SETTING_CATEGORIES.map(cat=>`
+    <div class="form-card" style="margin-bottom:0">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+        <div>
+          <div style="font-size:15px;font-weight:800">${cat.label}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">${cat.desc}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openSettingsModal('${cat.key}','${cat.label}')">＋ Add</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px" id="settings-list-${cat.key}">
+        ${(appSettings[cat.key]||[]).map(s=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:9px 12px">
+            <span style="font-size:13px;font-weight:600">${s.value}</span>
+            <div style="display:flex;gap:6px">
+              <button class="icon-btn" onclick="openSettingsModal('${cat.key}','${cat.label}','${s.id}','${s.value.replace(/'/g,"\\'")}')">✏️</button>
+              <button class="icon-btn del" onclick="deleteSettingValue('${s.id}','${cat.key}')">🗑</button>
+            </div>
+          </div>`).join('') || `<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">No values yet — click + Add</div>`}
+      </div>
+    </div>`).join('');
+}
+
+function openSettingsModal(category, label, id='', value=''){
+  $('settings-category').value = category;
+  $('settings-edit-id').value = id;
+  $('settings-modal-title').textContent = id ? `Edit ${label}` : `Add to ${label}`;
+  $('settings-value').value = value;
+  $('settings-modal').classList.add('open');
+  setTimeout(()=>$('settings-value').focus(), 200);
+}
+
+async function saveSettingValue(){
+  const category = $('settings-category').value;
+  const value = $('settings-value').value.trim();
+  const id = $('settings-edit-id').value;
+  if(!value){ toast('Please enter a value','error'); return; }
+  if(id){
+    await sb.from('settings').update({value}).eq('id',id);
+    toast('Updated!','success');
+  } else {
+    const existing = appSettings[category]||[];
+    await sb.from('settings').insert({category, value, sort_order: existing.length+1});
+    toast('Added!','success');
+  }
+  $('settings-modal').classList.remove('open');
+  await loadSettings();
+  await loadAppSettings(); // refresh dropdowns
+}
+
+async function deleteSettingValue(id, category){
+  if(!confirm('Delete this value?')) return;
+  await sb.from('settings').delete().eq('id',id);
+  toast('Deleted','success');
+  await loadSettings();
+  await loadAppSettings();
+}
+
+// Load settings into memory for dropdowns
+async function loadAppSettings(){
+  const {data} = await sb.from('settings').select('*').order('sort_order');
+  appSettings = {};
+  (data||[]).forEach(s=>{ if(!appSettings[s.category]) appSettings[s.category]=[]; appSettings[s.category].push(s); });
+}
+
+// Helper: get options HTML for a category
+function getOptionsHTML(category, selected='', emptyLabel='Select...'){
+  const vals = (appSettings[category]||[]).map(s=>s.value);
+  return `<option value="">${emptyLabel}</option>` + vals.map(v=>`<option ${v===selected?'selected':''}>${v}</option>`).join('');
+}
+
+// ══════════════════════════════════════════
+// TEAMS MANAGEMENT
+// ══════════════════════════════════════════
+let allTeams = [];
+let teamMembersMap = {}; // teamId -> [userIds]
+
+async function loadTeams(){
+  const [{data:teams},{data:members}] = await Promise.all([
+    sb.from('teams').select('*').order('created_at'),
+    sb.from('team_members').select('*')
+  ]);
+  allTeams = teams||[];
+  teamMembersMap = {};
+  (members||[]).forEach(m=>{
+    if(!teamMembersMap[m.team_id]) teamMembersMap[m.team_id]=[];
+    teamMembersMap[m.team_id].push(m.user_id);
+  });
+  renderTeamsGrid();
+}
+
+function renderTeamsGrid(){
+  if(!allTeams.length){
+    $('teams-grid').innerHTML=`<div style="grid-column:1/-1"><div class="empty-state"><div class="empty-icon">🏷</div><div class="empty-title">No teams yet</div><div class="empty-sub">Click "+ Create Team" to get started</div><button class="btn btn-primary" onclick="openTeamModal()">＋ Create Team</button></div></div>`;
+    return;
+  }
+  $('teams-grid').innerHTML = allTeams.map(team=>{
+    const memberIds = teamMembersMap[team.id]||[];
+    const members = allUsers.filter(u=>memberIds.includes(u.id));
+    return `<div class="form-card" style="margin-bottom:0;border-top:4px solid ${team.color}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:16px;font-weight:800">${team.name}</div>
+          ${team.description?`<div style="font-size:12px;color:var(--text2);margin-top:2px">${team.description}</div>`:''}
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="icon-btn" onclick="openTeamModal('${team.id}')">✏️</button>
+          <button class="icon-btn del" onclick="deleteTeam('${team.id}')">🗑</button>
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:8px">MEMBERS (${members.length})</div>
+        ${members.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px">${members.map(u=>`
+          <div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:4px 10px 4px 4px">
+            <div class="avatar" style="background:${avatarColor(u.name)};width:22px;height:22px;font-size:8px">${initials(u.name)}</div>
+            <span style="font-size:12px;font-weight:600">${u.name}</span>
+            <span class="role-pill role-${u.role}" style="font-size:9px;padding:1px 5px">${u.role[0].toUpperCase()}</span>
+          </div>`).join('')}</div>` :
+          `<div style="font-size:12px;color:var(--text3)">No members assigned yet</div>`}
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%" onclick="openTeamModal('${team.id}')">✏ Edit Team & Members</button>
+    </div>`;
+  }).join('');
+}
+
+async function openTeamModal(teamId=''){
+  // Load users if not loaded
+  if(!allUsers.length) await loadUsers();
+  $('edit-team-id').value = teamId;
+  $('team-modal-title').textContent = teamId ? 'Edit Team' : 'Create Team';
+
+  if(teamId){
+    const team = allTeams.find(t=>t.id===teamId);
+    $('tm-name').value = team.name;
+    $('tm-color').value = team.color;
+    $('tm-color-preview').style.background = team.color;
+    $('tm-desc').value = team.description||'';
+  } else {
+    $('tm-name').value=''; $('tm-color').value='#4F46E5';
+    $('tm-color-preview').style.background='#4F46E5';
+    $('tm-desc').value='';
+  }
+
+  const currentMembers = teamMembersMap[teamId]||[];
+  $('tm-members-list').innerHTML = allUsers.map(u=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-xs);cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='transparent'">
+      <input type="checkbox" value="${u.id}" ${currentMembers.includes(u.id)?'checked':''} style="width:15px;height:15px;accent-color:var(--accent)"/>
+      <div class="avatar" style="background:${avatarColor(u.name)};width:28px;height:28px;font-size:10px">${initials(u.name)}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${u.name}</div>
+        <div style="font-size:11px;color:var(--text3)">${u.email} · <span class="role-pill role-${u.role}" style="font-size:9px">${u.role}</span></div>
+      </div>
+    </label>`).join('');
+
+  $('team-modal').classList.add('open');
+}
+
+function closeTeamModal(){ $('team-modal').classList.remove('open'); }
+
+async function saveTeam(){
+  const name = $('tm-name').value.trim();
+  const color = $('tm-color').value;
+  const desc = $('tm-desc').value.trim();
+  const teamId = $('edit-team-id').value;
+  if(!name){ toast('Team name is required','error'); return; }
+
+  // Get selected members
+  const checked = [...$('tm-members-list').querySelectorAll('input[type=checkbox]:checked')].map(c=>c.value);
+
+  if(teamId){
+    // Update team
+    await sb.from('teams').update({name, color, description:desc}).eq('id',teamId);
+    // Remove all existing members then re-insert
+    await sb.from('team_members').delete().eq('team_id',teamId);
+    if(checked.length) await sb.from('team_members').insert(checked.map(uid=>({team_id:teamId, user_id:uid})));
+    toast(`Team "${name}" updated!`,'success');
+  } else {
+    // Create team
+    const {data} = await sb.from('teams').insert({name, color, description:desc}).select().single();
+    if(data && checked.length) await sb.from('team_members').insert(checked.map(uid=>({team_id:data.id, user_id:uid})));
+    toast(`Team "${name}" created!`,'success');
+  }
+  closeTeamModal();
+  loadTeams();
+}
+
+async function deleteTeam(id){
+  const team = allTeams.find(t=>t.id===id);
+  if(!confirm(`Delete team "${team?.name}"? This will remove all member assignments.`)) return;
+  await sb.from('teams').delete().eq('id',id);
+  toast('Team deleted','success');
+  loadTeams();
+}
+
+// Color preview on change
+document.addEventListener('input', e=>{
+  if(e.target.id==='tm-color') $('tm-color-preview').style.background = e.target.value;
+});
+
+// Close modals on backdrop click
+$('team-modal').addEventListener('click',e=>{ if(e.target===$('team-modal')) closeTeamModal(); });
+$('settings-modal').addEventListener('click',e=>{ if(e.target===$('settings-modal')) $('settings-modal').classList.remove('open'); });
+$('settings-value').addEventListener('keydown',e=>{ if(e.key==='Enter') saveSettingValue(); });
+
+// ══════════════════════════════════════════
+// AUTO LOGIN CHECK
+// ══════════════════════════════════════════
 (async()=>{
   const {data:{session}} = await sb.auth.getSession();
   if(session?.user){
     await loadProfile(session.user);
+    await loadAppSettings();
   }
 })();
 </script>
