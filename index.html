@@ -3,119 +3,131 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Vegam – Sprint Tracker</title>
+<title>Vegam Tracker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#F7F8FC;--surface:#FFFFFF;--surface2:#F0F2F8;--surface3:#E8EBF5;
-  --border:#E2E5F0;--border2:#D0D4E8;
+  --bg:#F4F6FB;--surface:#FFFFFF;--surface2:#F0F2F8;--surface3:#E8EBF5;
+  --border:#E2E5F0;--border2:#CDD1E8;
   --text:#0F1225;--text2:#5A6080;--text3:#9BA0BC;
   --accent:#4F46E5;--accent-light:#EEF2FF;--accent2:#6366F1;
   --green:#10B981;--green-bg:#ECFDF5;--green-border:#A7F3D0;
   --blue:#3B82F6;--blue-bg:#EFF6FF;--blue-border:#BFDBFE;
   --yellow:#F59E0B;--yellow-bg:#FFFBEB;--yellow-border:#FDE68A;
   --red:#EF4444;--red-bg:#FEF2F2;--red-border:#FECACA;
-  --purple:#8B5CF6;--purple-bg:#F5F3FF;--purple-border:#DDD6FE;
+  --purple:#8B5CF6;--purple-bg:#F5F3FF;
   --orange:#F97316;--orange-bg:#FFF7ED;
-  --radius:16px;--radius-sm:10px;--radius-xs:6px;
+  --radius:14px;--radius-sm:10px;--radius-xs:7px;
   --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
   --shadow-md:0 4px 12px rgba(0,0,0,0.08),0 8px 32px rgba(0,0,0,0.06);
-  --shadow-lg:0 12px 40px rgba(0,0,0,0.12);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.14);
 }
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
-/* ── LOADER ── */
-#loader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity 0.4s}
-#loader.hidden{opacity:0;pointer-events:none}
-.loader-logo{width:56px;height:56px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 8px 24px rgba(79,70,229,0.3);animation:pulse 1.5s ease-in-out infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-.loader-text{font-size:14px;color:var(--text2);font-family:'JetBrains Mono',monospace;letter-spacing:1px}
-.loader-bar{width:200px;height:3px;background:var(--border);border-radius:100px;overflow:hidden}
-.loader-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:100px;animation:load 1.8s ease-in-out infinite}
-@keyframes load{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex}
 
-/* ── TOPBAR ── */
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
-.topbar-logo{display:flex;align-items:center;gap:10px}
-.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 12px rgba(79,70,229,0.25)}
-.logo-text{font-size:18px;font-weight:800;letter-spacing:-0.5px;color:var(--text)}
-.logo-sub{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:1.5px;margin-top:-2px}
-.topbar-divider{width:1px;height:28px;background:var(--border);margin:0 4px}
+/* ══════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════ */
+#screen-login{align-items:center;justify-content:center;background:linear-gradient(135deg,#0F1225 0%,#1a1f3a 50%,#0F1225 100%);position:relative;overflow:hidden}
+.login-bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(79,70,229,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(79,70,229,0.08) 1px,transparent 1px);background-size:48px 48px}
+.login-glow{position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(79,70,229,0.15) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.login-box{position:relative;width:420px;max-width:95vw;animation:slideUp 0.5s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo-icon{width:60px;height:60px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:18px;display:inline-flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;margin-bottom:14px;box-shadow:0 0 40px rgba(79,70,229,0.4)}
+.login-logo-name{font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.login-logo-sub{font-size:11px;color:rgba(255,255,255,0.4);font-family:'JetBrains Mono',monospace;letter-spacing:2px;margin-top:4px}
+.login-card{background:rgba(255,255,255,0.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;box-shadow:0 32px 80px rgba(0,0,0,0.4)}
+.login-tab-row{display:flex;background:rgba(255,255,255,0.06);border-radius:10px;padding:4px;margin-bottom:28px;gap:4px}
+.login-tab{flex:1;padding:8px;border-radius:7px;border:none;background:none;color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s}
+.login-tab.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(79,70,229,0.4)}
+.form-group-lg{margin-bottom:16px}
+.form-label-lg{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,0.5);margin-bottom:7px;letter-spacing:0.3px}
+.form-input-lg{width:100%;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;padding:11px 14px;font-size:14px;font-family:inherit;color:#fff;outline:none;transition:all 0.2s}
+.form-input-lg::placeholder{color:rgba(255,255,255,0.25)}
+.form-input-lg:focus{border-color:var(--accent);background:rgba(79,70,229,0.1);box-shadow:0 0 0 3px rgba(79,70,229,0.2)}
+.btn-login-main{width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),var(--purple));border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;transition:all 0.2s;letter-spacing:0.2px}
+.btn-login-main:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(79,70,229,0.45)}
+.btn-login-main:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.login-error{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#FCA5A5;margin-bottom:14px;display:none}
+.login-success{background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#6EE7B7;margin-bottom:14px;display:none}
+
+/* ══════════════════════════════
+   APP SHELL
+══════════════════════════════ */
+#screen-app{flex-direction:column}
+.topnav{height:58px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:14px;position:sticky;top:0;z-index:200;box-shadow:var(--shadow)}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff}
+.nav-logo-text{font-size:17px;font-weight:800;letter-spacing:-0.3px}
+.nav-divider{width:1px;height:26px;background:var(--border)}
 .nav-tabs{display:flex;gap:2px}
-.nav-tab{padding:6px 16px;border-radius:var(--radius-xs);border:none;background:none;color:var(--text2);font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;gap:6px}
+.nav-tab{padding:6px 14px;border-radius:var(--radius-xs);border:none;background:none;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;gap:5px}
 .nav-tab:hover{color:var(--text);background:var(--surface2)}
 .nav-tab.active{color:var(--accent);background:var(--accent-light)}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-.live-badge{display:flex;align-items:center;gap:6px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:100px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--green)}
-.live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:blink 1.5s ease-in-out infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-.last-updated{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
-.btn-refresh{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-xs);border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s}
-.btn-refresh:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
-.btn-refresh.spinning .refresh-icon{animation:spin 0.8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.user-pill{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:5px 14px 5px 5px;font-size:13px;font-weight:600;cursor:pointer}
+.user-pill:hover{border-color:var(--accent)}
+.user-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}
+.role-pill{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:0.5px}
+.role-admin{background:#FEF3C7;color:#92400E}
+.role-manager{background:var(--purple-bg);color:var(--purple)}
+.role-developer{background:var(--blue-bg);color:var(--blue)}
+.role-tester{background:var(--green-bg);color:var(--green)}
+.btn-signout{padding:6px 14px;border-radius:var(--radius-xs);border:1.5px solid var(--border2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.btn-signout:hover{border-color:var(--red);color:var(--red)}
 
 /* ── PAGES ── */
-.page{display:none;padding:24px 28px;animation:fadeIn 0.3s ease}
+.page{display:none;padding:26px 28px;flex:1;overflow-y:auto;animation:fadeIn 0.25s ease}
 .page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-
-/* ── ERROR STATE ── */
-.error-box{background:var(--red-bg);border:1.5px solid var(--red-border);border-radius:var(--radius-sm);padding:20px 24px;display:flex;gap:14px;align-items:flex-start;margin-bottom:20px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.page-title{font-size:21px;font-weight:800;letter-spacing:-0.4px}
+.page-sub{font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-top:2px}
 
 /* ── STATS ── */
-.stats-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:22px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);transition:transform 0.15s,box-shadow 0.15s;position:relative;overflow:hidden}
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);transition:transform 0.15s;position:relative;overflow:hidden}
 .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
 .stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0}
 .sc-total::after{background:linear-gradient(90deg,var(--accent),var(--purple))}
-.sc-completed::after{background:var(--green)}
+.sc-done::after{background:var(--green)}
 .sc-dev::after{background:var(--blue)}
 .sc-yts::after{background:var(--yellow)}
-.sc-hold::after{background:var(--orange)}
 .sc-overdue::after{background:var(--red)}
-.stat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:12px}
+.stat-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:10px}
 .stat-num{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1}
 .stat-label{font-size:12px;color:var(--text2);margin-top:4px;font-weight:500}
-.stat-sub{font-size:11px;color:var(--text3);margin-top:3px;font-family:'JetBrains Mono',monospace}
 
-/* ── CHARTS ROW ── */
-.charts-row{display:grid;grid-template-columns:1fr 1.6fr;gap:16px;margin-bottom:22px}
-.charts-row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+/* ── CHARTS ── */
+.charts-row{display:grid;grid-template-columns:1fr 1.5fr;gap:16px;margin-bottom:22px}
+.charts-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:22px}
 .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
 .chart-title{font-size:14px;font-weight:700;margin-bottom:2px}
-.chart-sub{font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-bottom:18px}
-
-/* ── OVERDUE ALERT ── */
-.alert-banner{background:var(--red-bg);border:1.5px solid var(--red-border);border-radius:var(--radius-sm);padding:14px 18px;display:flex;gap:12px;align-items:flex-start;margin-bottom:20px}
-.alert-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.alert-chip{background:#fff;border:1px solid var(--red-border);border-radius:6px;padding:3px 10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--red)}
+.chart-sub{font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-bottom:16px}
 
 /* ── TABLE ── */
-.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-.table-toolbar{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface)}
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.table-toolbar{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .table-title{font-size:14px;font-weight:700}
-.search-wrap{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-xs);padding:7px 12px}
-.search-wrap input{background:none;border:none;outline:none;font-family:inherit;font-size:13px;color:var(--text);width:170px}
-.filter-sel{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-xs);padding:7px 10px;color:var(--text);font-family:inherit;font-size:12.5px;cursor:pointer;outline:none;transition:border-color 0.15s}
-.filter-sel:focus{border-color:var(--accent)}
+.count-badge{background:var(--accent-light);color:var(--accent);border-radius:100px;padding:2px 10px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.search-wrap{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-xs);padding:6px 12px}
+.search-wrap input{background:none;border:none;outline:none;font-family:inherit;font-size:13px;color:var(--text);width:160px}
+.fsel{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-xs);padding:6px 10px;color:var(--text);font-family:inherit;font-size:12px;cursor:pointer;outline:none}
+.fsel:focus{border-color:var(--accent)}
 .ml-auto{margin-left:auto}
-.count-badge{background:var(--accent-light);color:var(--accent);border-radius:100px;padding:2px 10px;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace}
 table{width:100%;border-collapse:collapse}
 th{padding:10px 16px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap}
 td{padding:11px 16px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#FAFBFF}
 .tid{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--accent);font-weight:500}
-.dev-cell{display:flex;align-items:center;gap:8px}
-.dev-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0}
-.dev-name{font-weight:600;font-size:13px}
-.dev-email{font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace}
-.task-title-cell{max-width:220px}
-.task-title-text{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.task-desc{font-size:11px;color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
 
 /* ── BADGES ── */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap}
@@ -124,337 +136,559 @@ tr:hover td{background:#FAFBFF}
 .b-development{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border)}
 .b-yts{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border)}
 .b-hold{background:var(--orange-bg);color:var(--orange);border:1px solid #FED7AA}
-.b-review{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border)}
-.b-lld{background:#F0FFF4;color:#059669;border:1px solid #6EE7B7}
+.b-review{background:var(--purple-bg);color:var(--purple);border:1px solid #DDD6FE}
 .b-default{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
-.pri{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:0.5px}
+.pri{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace}
 .pri-complex{background:#FEF3C7;color:#92400E}
 .pri-moderate{background:var(--blue-bg);color:#1D4ED8}
 .pri-simple{background:var(--green-bg);color:#065F46}
-.proj-tag{display:inline-flex;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600}
 .type-tag{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
 .type-cr{background:#EDE9FE;color:#5B21B6}
 .type-bug{background:var(--red-bg);color:var(--red)}
 .type-doc{background:var(--yellow-bg);color:#92400E}
 .type-new{background:var(--green-bg);color:#065F46}
 
-/* ── DEVELOPER PAGE ── */
-.dev-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px}
-.dev-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);transition:transform 0.15s}
-.dev-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
-.dev-card-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.dev-big-avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
-.dev-card-name{font-size:15px;font-weight:700}
-.dev-card-email{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
-.dev-card-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.dev-stat{text-align:center;flex:1;min-width:48px;background:var(--surface2);border-radius:8px;padding:8px 4px}
-.dev-stat-num{font-size:18px;font-weight:800;line-height:1}
-.dev-stat-label{font-size:9.5px;color:var(--text3);margin-top:2px;font-family:'JetBrains Mono',monospace;letter-spacing:0.5px}
-.dev-mini-bar{height:6px;border-radius:100px;background:var(--surface2);overflow:hidden;display:flex;margin-top:4px}
-.dev-mini-seg{height:100%;transition:width 0.4s}
+/* ── PERSON CELL ── */
+.person-cell{display:flex;align-items:center;gap:8px}
+.avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0}
 
-/* ── PROJECT PAGE ── */
-.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:24px}
-.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
-.proj-card-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.proj-dot{width:12px;height:12px;border-radius:50%}
-.proj-name{font-size:16px;font-weight:700}
-.proj-meta{font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace}
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:var(--radius-xs);font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all 0.15s;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;box-shadow:0 4px 12px rgba(79,70,229,0.25)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,70,229,0.35)}
+.btn-outline{background:transparent;color:var(--text2);border:1.5px solid var(--border2)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1.5px solid var(--red-border)}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-success{background:var(--green-bg);color:var(--green);border:1.5px solid var(--green-border)}
+.btn-success:hover{background:var(--green);color:#fff}
 
-/* ── SCROLLBAR ── */
+/* ── FORM CARD ── */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);margin-bottom:24px}
+.form-section{font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.form-section::after{content:'';flex:1;height:1px;background:var(--border)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:12px;font-weight:600;color:var(--text2)}
+.form-label em{color:var(--accent)}
+.form-input,.form-select,.form-textarea{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-xs);padding:9px 13px;font-size:13.5px;font-family:inherit;color:var(--text);outline:none;transition:all 0.15s;width:100%}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(79,70,229,0.08)}
+.form-select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%235A6080' d='M5 7L0 2h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+.form-textarea{resize:vertical;min-height:80px}
+.form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,18,37,0.55);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity 0.2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:600px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);transform:translateY(20px);transition:transform 0.25s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-head{padding:22px 26px 0;display:flex;align-items:flex-start;justify-content:space-between}
+.modal-title{font-size:17px;font-weight:800}
+.modal-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.modal-close{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border2);background:none;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all 0.15s}
+.modal-close:hover{background:var(--surface2);color:var(--text)}
+.modal-body{padding:20px 26px 26px}
+
+/* ── OVERDUE ALERT ── */
+.alert-banner{background:var(--red-bg);border:1.5px solid var(--red-border);border-radius:var(--radius-sm);padding:14px 18px;display:flex;gap:12px;align-items:flex-start;margin-bottom:20px}
+.alert-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.alert-chip{background:#fff;border:1px solid var(--red-border);border-radius:6px;padding:3px 10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--red)}
+
+/* ── TASK CARDS (dev/tester view) ── */
+.task-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.task-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);transition:transform 0.15s;position:relative;overflow:hidden}
+.task-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.task-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.tc-completed::before{background:var(--green)}
+.tc-development::before{background:var(--blue)}
+.tc-yts::before{background:var(--yellow)}
+.tc-hold::before{background:var(--orange)}
+.tc-review::before{background:var(--purple)}
+
+/* ── ADMIN USER MANAGEMENT ── */
+.user-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:24px}
+.user-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--text);color:#fff;border-radius:10px;padding:11px 18px;font-size:13px;font-weight:500;z-index:9999;transform:translateY(60px);opacity:0;transition:all 0.25s;pointer-events:none;box-shadow:var(--shadow-lg);max-width:320px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+
+/* ── LOADER ── */
+.page-loader{display:flex;align-items:center;justify-content:center;padding:80px;flex-direction:column;gap:14px;color:var(--text2)}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text2)}
+.empty-icon{font-size:44px;margin-bottom:12px;opacity:0.4}
+.empty-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
+.empty-sub{font-size:13px;margin-bottom:20px}
+
+/* ── ICON BTNS ── */
+.icon-btn{width:28px;height:28px;border-radius:6px;border:1.5px solid var(--border2);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all 0.15s;color:var(--text2)}
+.icon-btn:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.icon-btn.del:hover{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-/* ── TEAMS ── */
-.btn-primary-sm{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:linear-gradient(135deg,var(--accent),var(--purple));border:none;border-radius:var(--radius-xs);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;box-shadow:0 4px 12px rgba(79,70,229,0.25)}
-.btn-primary-sm:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,70,229,0.35)}
-.teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
-.team-card-ct{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);transition:transform 0.15s,box-shadow 0.15s;position:relative;overflow:hidden}
-.team-card-ct:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
-.team-card-ct::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
-.team-card-actions{display:flex;gap:6px}
-.team-btn{padding:6px 14px;border-radius:var(--radius-xs);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;border:1.5px solid}
-.team-btn-view{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
-.team-btn-view:hover{background:var(--accent);color:#fff}
-.team-btn-edit{background:var(--surface2);color:var(--text2);border-color:var(--border2)}
-.team-btn-edit:hover{border-color:var(--accent);color:var(--accent)}
-.team-btn-del{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
-.team-btn-del:hover{background:var(--red);color:#fff}
-.member-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:100px;padding:4px 10px;font-size:12px;font-weight:500}
-.member-chip-remove{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;line-height:1;padding:0;margin-left:2px;transition:color 0.15s}
-.member-chip-remove:hover{color:var(--red)}
-/* modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(15,18,37,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity 0.2s}
-.modal-overlay.open{opacity:1;pointer-events:all}
-.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);transform:translateY(20px);transition:transform 0.25s}
-.modal-overlay.open .modal{transform:translateY(0)}
-.modal-head-ct{padding:22px 24px 0;display:flex;align-items:flex-start;justify-content:space-between}
-.modal-title-ct{font-size:17px;font-weight:800;letter-spacing:-0.3px}
-.modal-sub-ct{font-size:12px;color:var(--text2);margin-top:2px}
-.modal-x-ct{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border2);background:transparent;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all 0.15s}
-.modal-x-ct:hover{background:var(--surface2);color:var(--text)}
-.modal-body-ct{padding:18px 24px 24px}
-.form-label-ct{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px}
-.form-input-ct{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-xs);padding:9px 13px;font-size:13.5px;font-family:inherit;color:var(--text);outline:none;transition:border-color 0.15s}
-.form-input-ct:focus{border-color:var(--accent)}
-
-@media(max-width:768px){.teams-grid{grid-template-columns:1fr}}
+@media(max-width:900px){
+  .stats-grid{grid-template-columns:repeat(3,1fr)}
+  .charts-row,.charts-row-3{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .page{padding:16px}
+  .topnav{padding:0 14px}
+}
 </style>
 </head>
 <body>
 
-<!-- LOADER -->
-<div id="loader">
-  <div class="loader-logo">V</div>
-  <div class="loader-text">LOADING LIVE DATA...</div>
-  <div class="loader-bar"><div class="loader-fill"></div></div>
-</div>
+<!-- ══════════════ LOGIN ══════════════ -->
+<div class="screen active" id="screen-login">
+  <div class="login-bg-grid"></div>
+  <div class="login-glow"></div>
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">V</div>
+      <div class="login-logo-name">Vegam Tracker</div>
+      <div class="login-logo-sub">SPRINT MANAGEMENT SYSTEM</div>
+    </div>
+    <div class="login-card">
+      <div class="login-tab-row">
+        <button class="login-tab active" id="tab-signin" onclick="switchLoginTab('signin')">Sign In</button>
+        <button class="login-tab" id="tab-signup" onclick="switchLoginTab('signup')">Sign Up</button>
+      </div>
+      <div id="login-error" class="login-error"></div>
+      <div id="login-success" class="login-success"></div>
 
-<!-- TOPBAR -->
-<div class="topbar">
-  <div class="topbar-logo">
-    <div class="logo-icon">V</div>
-    <div>
-      <div class="logo-text">Vegam</div>
-      <div class="logo-sub">SPRINT TRACKER</div>
-    </div>
-  </div>
-  <div class="topbar-divider"></div>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showPage('overview')" id="tab-overview">📊 Overview</button>
-    <button class="nav-tab" onclick="showPage('tasks')" id="tab-tasks">📋 All Tasks</button>
-    <button class="nav-tab" onclick="showPage('developers')" id="tab-developers">👥 Developers</button>
-    <button class="nav-tab" onclick="showPage('projects')" id="tab-projects">🏗 Projects</button>
-    <button class="nav-tab" onclick="showPage('teams')" id="tab-teams">🏷 My Teams</button>
-  </div>
-  <div class="topbar-right">
-    <div class="live-badge"><div class="live-dot"></div>LIVE</div>
-    <div class="last-updated" id="last-updated">—</div>
-    <button class="btn-refresh" onclick="loadData()" id="refresh-btn">
-      <span class="refresh-icon">↻</span> Refresh
-    </button>
-  </div>
-</div>
-
-<!-- OVERVIEW PAGE -->
-<div class="page active" id="page-overview">
-  <div id="overdue-banner"></div>
-  <div class="stats-grid" id="stats-grid"></div>
-  <div class="charts-row">
-    <div class="chart-card">
-      <div class="chart-title">Task Status Distribution</div>
-      <div class="chart-sub">All tasks by current status</div>
-      <div style="height:230px"><canvas id="pieChart"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Developer Workload</div>
-      <div class="chart-sub">Tasks per developer by status</div>
-      <div style="height:230px"><canvas id="devChart"></canvas></div>
-    </div>
-  </div>
-  <div class="charts-row-2">
-    <div class="chart-card">
-      <div class="chart-title">Project Breakdown</div>
-      <div class="chart-sub">Task count per project</div>
-      <div style="height:220px"><canvas id="projChart"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Task Type Split</div>
-      <div class="chart-sub">Change Request vs Bug vs Others</div>
-      <div style="height:220px"><canvas id="typeChart"></canvas></div>
-    </div>
-  </div>
-</div>
-
-<!-- ALL TASKS PAGE -->
-<div class="page" id="page-tasks">
-  <div class="table-card">
-    <div class="table-toolbar">
-      <span class="table-title">All Tasks</span>
-      <span class="count-badge" id="task-count">0</span>
-      <div class="search-wrap">🔍<input id="search-inp" placeholder="Search ID, name, project..." oninput="renderTaskTable()"/></div>
-      <select class="filter-sel" id="f-project" onchange="renderTaskTable()"><option value="">All Projects</option></select>
-      <select class="filter-sel" id="f-status" onchange="renderTaskTable()">
-        <option value="">All Status</option>
-        <option>Completed/Closed</option><option>Completed</option>
-        <option>Development</option><option>Developement</option>
-        <option>Yet to start</option><option>Hold</option><option>Review</option><option>LLD</option>
-      </select>
-      <select class="filter-sel" id="f-type" onchange="renderTaskTable()">
-        <option value="">All Types</option>
-        <option>Change Request</option><option>Bug</option><option>New Project</option><option>Document Updation</option>
-      </select>
-      <select class="filter-sel ml-auto" id="f-dev" onchange="renderTaskTable()"><option value="">All Developers</option></select>
-    </div>
-    <div style="overflow-x:auto">
-      <table>
-        <thead>
-          <tr>
-            <th>CR/Bug ID</th><th>Developer</th><th>Project</th><th>Description</th>
-            <th>Type</th><th>Complexity</th><th>Est. Hours</th>
-            <th>Start</th><th>End</th><th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="task-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- DEVELOPERS PAGE -->
-<div class="page" id="page-developers">
-  <div class="dev-cards-grid" id="dev-cards"></div>
-  <div class="table-card">
-    <div class="table-toolbar">
-      <span class="table-title">Developer Task Details</span>
-      <select class="filter-sel ml-auto" id="f-dev2" onchange="renderDevTable()"><option value="">All Developers</option></select>
-    </div>
-    <div style="overflow-x:auto">
-      <table>
-        <thead><tr><th>Developer</th><th>CR/Bug ID</th><th>Project</th><th>Description</th><th>Type</th><th>Status</th><th>End Date</th><th>Hours</th></tr></thead>
-        <tbody id="dev-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- PROJECTS PAGE -->
-<div class="page" id="page-projects">
-  <div class="proj-grid" id="proj-cards"></div>
-  <div class="chart-card">
-    <div class="chart-title">Project vs Status Comparison</div>
-    <div class="chart-sub">Task status breakdown per project</div>
-    <div style="height:280px"><canvas id="projBarChart"></canvas></div>
-  </div>
-</div>
-
-<!-- TEAMS PAGE -->
-<div class="page" id="page-teams">
-  <div style="padding:0">
-    <!-- Team Manager Panel -->
-    <div id="teams-manager">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <div>
-          <div style="font-size:20px;font-weight:800;letter-spacing:-0.4px">My Teams</div>
-          <div style="font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-top:2px">Create teams, assign developers, view team dashboards</div>
+      <!-- SIGN IN -->
+      <div id="form-signin">
+        <div class="form-group-lg">
+          <label class="form-label-lg">Email Address</label>
+          <input class="form-input-lg" id="si-email" type="email" placeholder="you@vegam.co" autocomplete="email"/>
         </div>
-        <button class="btn-primary-sm" onclick="openCreateTeamModal()">＋ Create New Team</button>
-      </div>
-
-      <!-- Teams grid -->
-      <div id="teams-list-grid"></div>
-
-      <!-- Empty state -->
-      <div id="teams-empty" style="display:block;text-align:center;padding:60px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
-        <div style="font-size:44px;margin-bottom:12px;opacity:0.3">🏷</div>
-        <div style="font-size:16px;font-weight:700;margin-bottom:6px">No teams yet</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:20px">Create your first team and assign developers to it</div>
-        <button class="btn-primary-sm" onclick="openCreateTeamModal()">＋ Create Team</button>
-      </div>
-    </div>
-
-    <!-- Team Detail View -->
-    <div id="team-detail-view" style="display:none">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
-        <button onclick="backToTeams()" style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-xs);padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">← Back to Teams</button>
-        <div id="team-detail-title" style="font-size:20px;font-weight:800;letter-spacing:-0.4px"></div>
-        <div id="team-detail-badge" style="padding:3px 12px;border-radius:100px;font-size:12px;font-weight:600"></div>
-      </div>
-
-      <!-- Team Stats -->
-      <div class="stats-grid" id="team-stats-grid" style="margin-bottom:22px"></div>
-
-      <!-- Team Charts -->
-      <div class="charts-row" style="margin-bottom:22px">
-        <div class="chart-card">
-          <div class="chart-title">Team Status Distribution</div>
-          <div class="chart-sub">Tasks by status for this team</div>
-          <div style="height:220px"><canvas id="teamPieChart"></canvas></div>
+        <div class="form-group-lg">
+          <label class="form-label-lg">Password</label>
+          <input class="form-input-lg" id="si-pass" type="password" placeholder="••••••••" autocomplete="current-password"/>
         </div>
-        <div class="chart-card">
-          <div class="chart-title">Member Workload</div>
-          <div class="chart-sub">Tasks per member by status</div>
-          <div style="height:220px"><canvas id="teamDevChart"></canvas></div>
-        </div>
+        <button class="btn-login-main" id="btn-signin" onclick="signIn()">Sign In →</button>
       </div>
 
-      <!-- Team Tasks Table -->
-      <div class="table-card">
-        <div class="table-toolbar">
-          <span class="table-title" id="team-table-title">Team Tasks</span>
-          <span class="count-badge" id="team-task-count">0</span>
-          <select class="filter-sel ml-auto" id="f-team-status" onchange="renderTeamTaskTable()">
-            <option value="">All Status</option>
-            <option>Completed/Closed</option><option>Completed</option>
-            <option>Development</option><option>Yet to start</option><option>Hold</option><option>Review</option>
+      <!-- SIGN UP -->
+      <div id="form-signup" style="display:none">
+        <div class="form-group-lg">
+          <label class="form-label-lg">Full Name</label>
+          <input class="form-input-lg" id="su-name" type="text" placeholder="Your full name"/>
+        </div>
+        <div class="form-group-lg">
+          <label class="form-label-lg">Email Address</label>
+          <input class="form-input-lg" id="su-email" type="email" placeholder="you@vegam.co"/>
+        </div>
+        <div class="form-group-lg">
+          <label class="form-label-lg">Password</label>
+          <input class="form-input-lg" id="su-pass" type="password" placeholder="Min 6 characters"/>
+        </div>
+        <div class="form-group-lg">
+          <label class="form-label-lg">Role</label>
+          <select class="form-input-lg" id="su-role" style="background:rgba(255,255,255,0.07);color:#fff">
+            <option value="developer" style="background:#1a1f3a">Developer</option>
+            <option value="tester" style="background:#1a1f3a">Tester</option>
+            <option value="manager" style="background:#1a1f3a">Manager</option>
           </select>
-          <select class="filter-sel" id="f-team-member" onchange="renderTeamTaskTable()"><option value="">All Members</option></select>
         </div>
-        <div style="overflow-x:auto">
-          <table>
-            <thead><tr><th>CR/Bug ID</th><th>Developer</th><th>Project</th><th>Description</th><th>Type</th><th>Complexity</th><th>End Date</th><th>Status</th></tr></thead>
-            <tbody id="team-task-tbody"></tbody>
-          </table>
-        </div>
+        <button class="btn-login-main" id="btn-signup" onclick="signUp()">Create Account →</button>
+        <div style="font-size:11px;color:rgba(255,255,255,0.3);text-align:center;margin-top:12px">Admin accounts are created by your administrator</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- CREATE TEAM MODAL -->
-<div class="modal-overlay" id="create-team-modal">
-  <div class="modal" style="width:520px">
-    <div class="modal-head-ct">
+<!-- ══════════════ APP ══════════════ -->
+<div class="screen" id="screen-app">
+
+  <!-- TOPNAV -->
+  <div class="topnav">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">V</div>
+      <div class="nav-logo-text">Vegam Tracker</div>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-tabs" id="nav-tabs"></div>
+    <div class="nav-right">
+      <div class="user-pill" id="user-pill">
+        <div class="user-avatar" id="nav-avatar"></div>
+        <span id="nav-name"></span>
+        <span class="role-pill" id="nav-role"></span>
+      </div>
+      <button class="btn-signout" onclick="signOut()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD (Admin + Manager) ── -->
+  <div class="page" id="page-dashboard">
+    <div class="page-header">
       <div>
-        <div class="modal-title-ct">Create New Team</div>
-        <div class="modal-sub-ct">Give your team a name, color and add members</div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub" id="dash-date"></div>
       </div>
-      <button class="modal-x-ct" onclick="closeCreateTeamModal()">✕</button>
+      <button class="btn btn-outline btn-sm" onclick="loadDashboard()">↻ Refresh</button>
     </div>
-    <div class="modal-body-ct">
-      <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px;align-items:end">
-        <div>
-          <label class="form-label-ct">Team Name <em style="color:var(--accent)">*</em></label>
-          <input class="form-input-ct" id="ct-name" placeholder="e.g. Frontend Squad"/>
+    <div id="overdue-banner"></div>
+    <div class="stats-grid" id="dash-stats"></div>
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Task Status</div>
+        <div class="chart-sub">Overall distribution</div>
+        <div style="height:230px"><canvas id="pieChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Developer Workload</div>
+        <div class="chart-sub">Tasks per person by status</div>
+        <div style="height:230px"><canvas id="devChart"></canvas></div>
+      </div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Project Breakdown</div>
+        <div class="chart-sub">Tasks per project</div>
+        <div style="height:220px"><canvas id="projChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Task Type Split</div>
+        <div class="chart-sub">CR vs Bug vs Others</div>
+        <div style="height:220px"><canvas id="typeChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ALL TASKS (Admin + Manager) ── -->
+  <div class="page" id="page-tasks">
+    <div class="page-header">
+      <div><div class="page-title">All Tasks</div><div class="page-sub">Complete task registry</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Export CSV</button>
+        <button class="btn btn-primary btn-sm" onclick="openTaskModal()">＋ Add Task</button>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="table-toolbar">
+        <span class="table-title">Tasks</span>
+        <span class="count-badge" id="task-count">0</span>
+        <div class="search-wrap">🔍<input id="search-inp" placeholder="Search..." oninput="renderTaskTable()"/></div>
+        <select class="fsel" id="f-status" onchange="renderTaskTable()">
+          <option value="">All Status</option>
+          <option>Yet to Start</option><option>Development</option>
+          <option>Completed</option><option>Hold</option><option>Review</option>
+        </select>
+        <select class="fsel" id="f-project" onchange="renderTaskTable()"><option value="">All Projects</option></select>
+        <select class="fsel" id="f-assignee" onchange="renderTaskTable()"><option value="">All Assignees</option></select>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Tracker ID</th><th>Title</th><th>Assignee</th><th>Project</th>
+            <th>Type</th><th>Priority</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="task-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MY TASKS (Dev + Tester) ── -->
+  <div class="page" id="page-my-tasks">
+    <div class="page-header">
+      <div><div class="page-title">My Tasks</div><div class="page-sub" id="my-tasks-sub"></div></div>
+      <button class="btn btn-primary" onclick="openTaskModal()">＋ Add Task</button>
+    </div>
+    <!-- Quick stats for dev -->
+    <div class="stats-grid" id="my-stats" style="grid-template-columns:repeat(4,1fr)"></div>
+    <!-- Task cards -->
+    <div class="task-cards-grid" id="my-task-cards"></div>
+  </div>
+
+  <!-- ── USERS (Admin only) ── -->
+  <div class="page" id="page-users">
+    <div class="page-header">
+      <div><div class="page-title">User Management</div><div class="page-sub">Manage team members, roles & access</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openUserModal()">＋ Add User</button>
+    </div>
+    <!-- User stats bar -->
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow)">
+        <span style="font-size:20px">👥</span>
+        <div><div style="font-size:18px;font-weight:800" id="u-count-total">0</div><div style="font-size:11px;color:var(--text2)">Total Users</div></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow)">
+        <span style="font-size:20px">🛡</span>
+        <div><div style="font-size:18px;font-weight:800;color:#92400E" id="u-count-admin">0</div><div style="font-size:11px;color:var(--text2)">Admins</div></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow)">
+        <span style="font-size:20px">📊</span>
+        <div><div style="font-size:18px;font-weight:800;color:var(--purple)" id="u-count-manager">0</div><div style="font-size:11px;color:var(--text2)">Managers</div></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow)">
+        <span style="font-size:20px">💻</span>
+        <div><div style="font-size:18px;font-weight:800;color:var(--blue)" id="u-count-dev">0</div><div style="font-size:11px;color:var(--text2)">Developers</div></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow)">
+        <span style="font-size:20px">🧪</span>
+        <div><div style="font-size:18px;font-weight:800;color:var(--green)" id="u-count-tester">0</div><div style="font-size:11px;color:var(--text2)">Testers</div></div>
+      </div>
+    </div>
+    <!-- Filter + Search -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <div class="search-wrap"><span>🔍</span><input id="user-search" placeholder="Search name or email..." oninput="renderUserGrid()" style="width:200px"/></div>
+      <select class="fsel" id="user-filter-role" onchange="renderUserGrid()">
+        <option value="">All Roles</option>
+        <option value="admin">Admin</option>
+        <option value="manager">Manager</option>
+        <option value="developer">Developer</option>
+        <option value="tester">Tester</option>
+      </select>
+      <select class="fsel" id="user-filter-status" onchange="renderUserGrid()">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+    <div class="user-grid" id="user-grid"></div>
+  </div>
+
+  <!-- ── PROFILE ── -->
+  <div class="page" id="page-profile">
+    <div class="page-header">
+      <div><div class="page-title">My Profile</div><div class="page-sub">Manage your account</div></div>
+    </div>
+    <div style="max-width:500px">
+      <div class="form-card">
+        <div class="form-section">Profile Details</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">Full Name</label>
+            <input class="form-input" id="prof-name"/>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Email</label>
+            <input class="form-input" id="prof-email" disabled style="opacity:0.6"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Role</label>
+            <input class="form-input" id="prof-role" disabled style="opacity:0.6"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Team</label>
+            <input class="form-input" id="prof-team"/>
+          </div>
         </div>
-        <div>
-          <label class="form-label-ct">Color</label>
-          <input type="color" class="form-input-ct" id="ct-color" value="#4F46E5" style="height:40px;padding:4px 6px;cursor:pointer;width:60px"/>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
         </div>
       </div>
+    </div>
+  </div>
 
-      <div style="margin-bottom:16px">
-        <label class="form-label-ct">Add Members</label>
-        <div style="display:flex;gap:8px;margin-top:6px">
-          <select class="form-input-ct" id="ct-member-sel" style="flex:1"></select>
-          <button onclick="addMemberToNewTeam()" style="padding:9px 16px;background:var(--accent-light);color:var(--accent);border:1.5px solid var(--accent);border-radius:var(--radius-xs);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">＋ Add</button>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div><div class="modal-title" id="task-modal-title">Add Task</div><div class="modal-sub">Fill in all required fields</div></div>
+      <button class="modal-close" onclick="closeTaskModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-task-id"/>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Tracker ID <em>*</em></label>
+          <input class="form-input" id="f-tracker-id" placeholder="e.g. TRK-101"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select class="form-select" id="f-complexity">
+            <option value="">Select</option>
+            <option>Simple</option><option>Moderate</option><option>Complex</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Task Title <em>*</em></label>
+          <input class="form-input" id="f-title" placeholder="Short descriptive title"/>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" id="f-desc" placeholder="What needs to be done?"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Project <em>*</em></label>
+          <input class="form-input" id="f-project" placeholder="e.g. BASF, Henkel"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Task Type</label>
+          <select class="form-select" id="f-type">
+            <option value="">Select</option>
+            <option>Change Request</option><option>Bug</option>
+            <option>New Project</option><option>Document Updation</option>
+          </select>
+        </div>
+        <div class="form-group" id="f-assignee-wrap">
+          <label class="form-label">Assign To <em>*</em></label>
+          <select class="form-select" id="f-assign-to"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estimated Hours</label>
+          <input class="form-input" id="f-hours" type="number" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Start Date <em>*</em></label>
+          <input class="form-input" id="f-start" type="date"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Date <em>*</em></label>
+          <input class="form-input" id="f-end" type="date"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="f-status-modal">
+            <option>Yet to Start</option><option>Development</option>
+            <option>Review</option><option>Completed</option><option>Hold</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">LLD Status</label>
+          <input class="form-input" id="f-lld" placeholder="e.g. Document Created"/>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Comments</label>
+          <textarea class="form-textarea" id="f-comments" placeholder="Any additional notes..." style="min-height:60px"></textarea>
         </div>
       </div>
-
-      <div id="ct-members-list" style="display:flex;flex-wrap:wrap;gap:8px;min-height:40px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-xs);padding:10px;margin-bottom:20px">
-        <div id="ct-members-empty" style="font-size:12px;color:var(--text3);width:100%;text-align:center;padding:4px">No members added yet</div>
-      </div>
-
-      <div style="display:flex;justify-content:flex-end;gap:10px">
-        <button onclick="closeCreateTeamModal()" style="padding:9px 18px;background:transparent;border:1.5px solid var(--border2);border-radius:var(--radius-xs);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
-        <button onclick="saveNewTeam()" style="padding:9px 20px;background:linear-gradient(135deg,var(--accent),var(--purple));border:none;border-radius:var(--radius-xs);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Create Team ✓</button>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="closeTaskModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveTask()">Save Task</button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- USER MODAL (Admin) -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal" style="width:480px">
+    <div class="modal-head">
+      <div><div class="modal-title" id="user-modal-title">Add User</div><div class="modal-sub" id="user-modal-sub">Create a new team member account</div></div>
+      <button class="modal-close" onclick="closeUserModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-user-id"/>
+
+      <!-- CREATE MODE fields -->
+      <div id="um-create-fields">
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Full Name <em style="color:var(--accent)">*</em></label>
+          <input class="form-input" id="um-name-new" placeholder="e.g. Priya Sharma"/>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Email Address <em style="color:var(--accent)">*</em></label>
+          <input class="form-input" id="um-email-new" type="email" placeholder="priya@vegam.co"/>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Temporary Password <em style="color:var(--accent)">*</em></label>
+          <div style="display:flex;gap:8px">
+            <input class="form-input" id="um-pass-new" type="text" placeholder="Min 6 characters" style="flex:1"/>
+            <button onclick="generatePassword()" class="btn btn-outline btn-sm" style="white-space:nowrap">🎲 Generate</button>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Share this password with the user — they can change it later from Profile</div>
+        </div>
+      </div>
+
+      <!-- EDIT MODE fields -->
+      <div id="um-edit-fields" style="display:none">
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Full Name</label>
+          <input class="form-input" id="um-name"/>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Email</label>
+          <input class="form-input" id="um-email" disabled style="opacity:0.6"/>
+        </div>
+      </div>
+
+      <!-- SHARED fields -->
+      <div class="form-group" style="margin-bottom:14px">
+        <label class="form-label">Role <em style="color:var(--accent)">*</em></label>
+        <select class="form-select" id="um-role">
+          <option value="admin">Admin — Full access + manage users</option>
+          <option value="manager">Manager — View all dashboards</option>
+          <option value="developer" selected>Developer — Own tasks only</option>
+          <option value="tester">Tester — Own tasks only</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label class="form-label">Team</label>
+        <input class="form-input" id="um-team" placeholder="e.g. BASF Team, Frontend"/>
+      </div>
+
+      <!-- Role preview -->
+      <div style="background:var(--surface2);border-radius:var(--radius-xs);padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--text2)">
+        <strong style="color:var(--text)">Role permissions:</strong>
+        <div id="role-preview" style="margin-top:6px;line-height:1.8"></div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="closeUserModal()">Cancel</button>
+        <button class="btn btn-primary" id="um-save-btn" onclick="saveUser()">Create User</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESET PASSWORD MODAL -->
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal" style="width:400px">
+    <div class="modal-head">
+      <div><div class="modal-title">Reset Password</div><div class="modal-sub" id="reset-modal-sub"></div></div>
+      <button class="modal-close" onclick="$('reset-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="reset-user-id"/>
+      <div class="form-group" style="margin-bottom:20px">
+        <label class="form-label">New Password</label>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" id="reset-pass" type="text" placeholder="New password" style="flex:1"/>
+          <button onclick="generateResetPassword()" class="btn btn-outline btn-sm">🎲</button>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="$('reset-modal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" onclick="doResetPassword()">Reset Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="toast" id="toast"></div>
 
 <script>
 // ══════════════════════════════════════════
-// CONFIG — paste your Google Sheets CSV URL
+// SUPABASE CONFIG
 // ══════════════════════════════════════════
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTz52tg3xiAeucxyc1GZAtARTSb5ZBjSWJOJHmFVLIcrg-0mHEM9QHZQhfwP9ZrM2vaKEfNgPBlt3ZI/pub?gid=0&single=true&output=csv';
-const REFRESH_INTERVAL = 60000; // auto refresh every 60 seconds
+const SUPABASE_URL = 'https://pjmdlaznefzatwpnokfq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqbWRsYXpuZWZ6YXR3cG5va2ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4MDYzODksImV4cCI6MjA4ODM4MjM4OX0.k6BvTAaWnEy50drfu-hroY0AE4bL7cl0BRz9mSPubrg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ══════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════
+let currentUser = null;
+let currentProfile = null;
 let allTasks = [];
+let allUsers = [];
 let charts = {};
 
 // ══════════════════════════════════════════
@@ -462,736 +696,702 @@ let charts = {};
 // ══════════════════════════════════════════
 const $ = id => document.getElementById(id);
 const today = () => new Date().toISOString().split('T')[0];
-const fmt = d => { if(!d||d.trim()==='') return '—'; try{ const dt=new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }catch{ return d; } };
-const isOverdue = t => { if(!t.endDate||t.endDate.trim()==='') return false; const norm=normalizeStatus(t.status); if(norm==='completed') return false; try{ return new Date(t.endDate)<new Date(today()); }catch{ return false; } };
-const normalizeStatus = s => { if(!s) return 'unknown'; const l=s.toLowerCase().trim(); if(l.includes('complet')) return 'completed'; if(l.includes('develop')) return 'development'; if(l.includes('yet')||l.includes('yts')) return 'yts'; if(l==='hold') return 'hold'; if(l==='review') return 'review'; if(l==='lld') return 'lld'; return 'other'; };
-const statusBadge = s => { const n=normalizeStatus(s); const map={completed:'b-completed',development:'b-development',yts:'b-yts',hold:'b-hold',review:'b-review',lld:'b-lld'}; return `<span class="badge ${map[n]||'b-default'}">${s||'—'}</span>`; };
-const typeBadge = t => { if(!t) return '—'; const l=t.toLowerCase(); if(l.includes('change')) return `<span class="type-tag type-cr">CR</span>`; if(l.includes('bug')) return `<span class="type-tag type-bug">Bug</span>`; if(l.includes('new')) return `<span class="type-tag type-new">New</span>`; if(l.includes('doc')) return `<span class="type-tag type-doc">Doc</span>`; return `<span class="type-tag" style="background:var(--surface2);color:var(--text2)">${t}</span>`; };
-const complexBadge = c => { if(!c) return '—'; const l=c.toLowerCase(); if(l==='complex') return `<span class="pri pri-complex">Complex</span>`; if(l==='moderate') return `<span class="pri pri-moderate">Moderate</span>`; if(l==='simple') return `<span class="pri pri-simple">Simple</span>`; return c; };
+const fmt = d => { if(!d) return '—'; try{ return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }catch{ return d; } };
+const isOverdue = t => t.status !== 'Completed' && t.end_date && t.end_date < today();
+const normalizeStatus = s => { if(!s) return 'yts'; const l=s.toLowerCase(); if(l.includes('complet')) return 'completed'; if(l.includes('dev')) return 'development'; if(l.includes('yet')||l.includes('yts')) return 'yts'; if(l==='hold') return 'hold'; if(l==='review') return 'review'; return 'yts'; };
 const avatarColor = n => { const c=["#4F46E5","#10B981","#F59E0B","#EF4444","#8B5CF6","#3B82F6","#F97316","#EC4899","#06B6D4","#84CC16"]; let h=0; for(let ch of (n||'')) h=ch.charCodeAt(0)+((h<<5)-h); return c[Math.abs(h)%c.length]; };
-const initials = n => { if(!n) return '??'; return n.split(/[\s.@]/).filter(Boolean).map(x=>x[0]).join('').toUpperCase().slice(0,2); };
-const devName = email => { if(!email) return 'Unknown'; return email.split('@')[0].split('.').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' '); };
-const projColor = p => { const c={"BASF":"#3B82F6","Henkel":"#10B981","LeanLab":"#8B5CF6","All":"#F59E0B"}; return c[p]||(()=>{ const cs=["#4F46E5","#F97316","#EC4899","#06B6D4","#84CC16"]; let h=0; for(let ch of (p||'')) h=ch.charCodeAt(0)+((h<<5)-h); return cs[Math.abs(h)%cs.length]; })(); };
-const destroyChart = key => { if(charts[key]) { charts[key].destroy(); delete charts[key]; } };
+const initials = n => { if(!n) return '?'; return n.split(' ').filter(Boolean).map(x=>x[0]).join('').toUpperCase().slice(0,2); };
+const projColor = p => { const c={"BASF":"#3B82F6","Henkel":"#10B981","LeanLab":"#8B5CF6","All":"#F59E0B"}; return c[p]||avatarColor(p||''); };
+const destroyChart = k => { if(charts[k]){ charts[k].destroy(); delete charts[k]; } };
 
-function toast(msg, type='info'){
-  let el = document.getElementById('toast-el');
-  if(!el){ el=document.createElement('div'); el.id='toast-el'; el.style.cssText='position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:9999;transition:all 0.25s;box-shadow:var(--shadow-lg)'; document.body.appendChild(el); }
-  el.textContent=msg; el.style.opacity='1'; el.style.transform='translateY(0)';
-  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(20px)'; },2800);
+function statusBadge(s){
+  const n=normalizeStatus(s);
+  const map={completed:'b-completed',development:'b-development',yts:'b-yts',hold:'b-hold',review:'b-review'};
+  return `<span class="badge ${map[n]||'b-default'}">${s||'Yet to Start'}</span>`;
+}
+function typeBadge(t){
+  if(!t) return '—';
+  const l=t.toLowerCase();
+  if(l.includes('change')) return `<span class="type-tag type-cr">CR</span>`;
+  if(l.includes('bug')) return `<span class="type-tag type-bug">Bug</span>`;
+  if(l.includes('new')) return `<span class="type-tag type-new">New</span>`;
+  if(l.includes('doc')) return `<span class="type-tag type-doc">Doc</span>`;
+  return `<span class="type-tag" style="background:var(--surface2);color:var(--text2)">${t}</span>`;
+}
+function complexBadge(c){
+  if(!c) return '—';
+  const l=c.toLowerCase();
+  if(l==='complex') return `<span class="pri pri-complex">Complex</span>`;
+  if(l==='moderate') return `<span class="pri pri-moderate">Moderate</span>`;
+  if(l==='simple') return `<span class="pri pri-simple">Simple</span>`;
+  return c;
+}
+
+let toastTimer;
+function toast(msg, type=''){
+  const el=$('toast'); el.textContent=msg; el.className=`toast ${type} show`;
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000);
 }
 
 // ══════════════════════════════════════════
-// CSV PARSER
+// AUTH
 // ══════════════════════════════════════════
-function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,''));
-  return lines.slice(1).map(line => {
-    const vals = [];
-    let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') { inQ = !inQ; }
-      else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
-      else { cur += ch; }
-    }
-    vals.push(cur.trim());
-    const obj = {};
-    headers.forEach((h, i) => obj[h] = (vals[i] || '').replace(/^"|"$/g, '').trim());
-    return obj;
-  }).filter(r => r['Developer Email'] && r['Developer Email'].trim() !== '');
+function switchLoginTab(tab){
+  $('tab-signin').classList.toggle('active', tab==='signin');
+  $('tab-signup').classList.toggle('active', tab==='signup');
+  $('form-signin').style.display = tab==='signin'?'block':'none';
+  $('form-signup').style.display = tab==='signup'?'block':'none';
+  $('login-error').style.display='none';
+  $('login-success').style.display='none';
 }
 
-function mapRow(row) {
-  return {
-    date: row['Date'] || '',
-    email: row['Developer Email'] || '',
-    name: devName(row['Developer Email']),
-    project: row['Project'] || '',
-    crId: row['CR/Bug ID'] || '',
-    description: row['Tracker Description'] || '',
-    taskType: row['Task Type'] || '',
-    complexity: row['Complexity'] || '',
-    estHours: row['Estimated Hours'] || '',
-    startDate: row['Start Date'] || '',
-    endDate: row['End Date'] || '',
-    lld: row['LLD ( Low Level Design document)'] || row['LLD'] || '',
-    status: row['Status'] || '',
-    openToTasks: row['Open to New Tasks'] || '',
-    comments: row['Comments'] || '',
-  };
+async function signIn(){
+  const email=$('si-email').value.trim(), pass=$('si-pass').value;
+  if(!email||!pass){ showLoginError('Please fill in all fields'); return; }
+  $('btn-signin').disabled=true; $('btn-signin').textContent='Signing in...';
+  const {data,error} = await sb.auth.signInWithPassword({email, password:pass});
+  $('btn-signin').disabled=false; $('btn-signin').textContent='Sign In →';
+  if(error){ showLoginError(error.message); return; }
+  await loadProfile(data.user);
 }
 
-// ══════════════════════════════════════════
-// LOAD DATA
-// ══════════════════════════════════════════
-async function loadData() {
-  const btn = $('refresh-btn');
-  btn.classList.add('spinning');
-
-  // Always show sample data immediately so loader disappears instantly
-  if(allTasks.length === 0) {
-    allTasks = getSampleData();
-    renderAll();
-    populateFilters();
-    $('loader').classList.add('hidden');
-    $('last-updated').textContent = 'Sample data loaded';
+async function signUp(){
+  const name=$('su-name').value.trim(), email=$('su-email').value.trim();
+  const pass=$('su-pass').value, role=$('su-role').value;
+  if(!name||!email||!pass){ showLoginError('Please fill in all fields'); return; }
+  if(pass.length<6){ showLoginError('Password must be at least 6 characters'); return; }
+  $('btn-signup').disabled=true; $('btn-signup').textContent='Creating account...';
+  const {data,error} = await sb.auth.signUp({email, password:pass});
+  if(error){ showLoginError(error.message); $('btn-signup').disabled=false; $('btn-signup').textContent='Create Account →'; return; }
+  // Insert profile
+  if(data.user){
+    await sb.from('profiles').insert({id:data.user.id, email, name, role, team:''});
   }
+  $('btn-signup').disabled=false; $('btn-signup').textContent='Create Account →';
+  showLoginSuccess('Account created! You can now sign in.');
+  switchLoginTab('signin');
+  $('si-email').value=email;
+}
 
-  // Then try to fetch live data in background with a 5s timeout
+async function loadProfile(user){
+  currentUser = user;
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(SHEET_URL + '&t=' + Date.now(), { signal: controller.signal });
-    clearTimeout(timeout);
-    if (!res.ok) throw new Error('Failed to fetch');
-    const text = await res.text();
-    const rows = parseCSV(text);
-    if(rows.length > 0) {
-      allTasks = rows.map(mapRow);
-      $('last-updated').textContent = '🟢 Live · ' + new Date().toLocaleTimeString();
-      renderAll();
-      populateFilters();
-      $('loader').classList.add('hidden');
-      toast('✅ Live data loaded!');
+    // Try reading profile
+    const {data, error} = await sb.from('profiles').select('*').eq('id', user.id).single();
+    if(error || !data){
+      // Profile might not exist yet — create it
+      const name = user.email.split('@')[0].split('.').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+      const {error:insertErr} = await sb.from('profiles').insert({
+        id: user.id, email: user.email, name, role:'developer', team:''
+      });
+      if(insertErr) console.warn('Profile insert error:', insertErr.message);
+      // Read again
+      const {data:d2} = await sb.from('profiles').select('*').eq('id', user.id).single();
+      currentProfile = d2 || {id:user.id, email:user.email, name, role:'developer', team:'', is_active:true};
+    } else {
+      currentProfile = data;
     }
+    if(!currentProfile){ throw new Error('Could not load profile'); }
+    initApp();
   } catch(e) {
-    // Silently keep showing sample/last data — no blocking
-    if($('last-updated').textContent.includes('Sample')) {
-      $('last-updated').textContent = '⚠ Sample data (add sheet URL to go live)';
-    }
+    console.error('loadProfile error:', e);
+    showLoginError('Login failed: ' + e.message + '. Please check Supabase RLS policies.');
+    await sb.auth.signOut();
   }
-  btn.classList.remove('spinning');
 }
 
-// ══════════════════════════════════════════
-// SAMPLE DATA (fallback for preview)
-// ══════════════════════════════════════════
-function getSampleData() {
-  return [
-    {date:'23-02-2026',email:'premsagar@vegam.co',name:'Premsagar',project:'BASF',crId:'78122',description:'Capture application process start time and end time',taskType:'Change Request',complexity:'Moderate',estHours:'12',startDate:'2026-02-20',endDate:'2026-02-24',lld:'Document Created',status:'Completed/Closed',openToTasks:'',comments:''},
-    {date:'23-02-2026',email:'roshan.tawade@vegam.co',name:'Roshan Tawade',project:'BASF',crId:'78780',description:'Staging all screen enhancement for Split order handling',taskType:'Change Request',complexity:'Moderate',estHours:'10',startDate:'2026-02-23',endDate:'2026-02-25',lld:'Document yet to create',status:'Developement',openToTasks:'02-03-2026',comments:''},
-    {date:'23-02-2026',email:'premsagar@vegam.co',name:'Premsagar',project:'Henkel',crId:'57366',description:'SAP Recipe Sync Changes at the site level',taskType:'Change Request',complexity:'Moderate',estHours:'3',startDate:'2026-02-25',endDate:'2026-02-27',lld:'Document yet to create',status:'Yet to start',openToTasks:'',comments:''},
-    {date:'23-02-2026',email:'omkar.patil@vegam.co',name:'Omkar Patil',project:'BASF',crId:'78781',description:'Enable Split Order workflow',taskType:'Change Request',complexity:'Moderate',estHours:'32',startDate:'2026-02-19',endDate:'2026-02-23',lld:'Document yet to create',status:'Developement',openToTasks:'24-02-2026',comments:'After completing the background job'},
-    {date:'23-02-2026',email:'kalavathi@vegam.co',name:'Kalavathi',project:'LeanLab',crId:'78593',description:'RFID LeanLab',taskType:'New Project',complexity:'Moderate',estHours:'',startDate:'',endDate:'',lld:'',status:'Yet to start',openToTasks:'',comments:''},
-    {date:'23-02-2026',email:'bhumika.joshi@vegam.co',name:'Bhumika Joshi',project:'Henkel',crId:'79791',description:'Multiple issues while uploading SOP excel',taskType:'Bug',complexity:'Simple',estHours:'10',startDate:'2026-02-24',endDate:'2026-02-25',lld:'N/A',status:'Completed/Closed',openToTasks:'25-02-2026',comments:''},
-    {date:'23-02-2026',email:'sujan.das@vegam.co',name:'Sujan Das',project:'Henkel',crId:'78874',description:'Enable Alert when Balance is not added in Phase',taskType:'Change Request',complexity:'Moderate',estHours:'',startDate:'2026-02-18',endDate:'2026-02-24',lld:'Document Created',status:'Development',openToTasks:'02-03-2026',comments:''},
-    {date:'23-02-2026',email:'rohit@vegam.co',name:'Rohit',project:'Henkel',crId:'80494',description:'Process Order Confirmation with Pending RM Override',taskType:'Change Request',complexity:'Simple',estHours:'2',startDate:'2026-02-23',endDate:'2026-02-23',lld:'Document Created',status:'Completed/Closed',openToTasks:'23-02-2026',comments:''},
-    {date:'23-02-2026',email:'anisha@vegam.co',name:'Anisha',project:'All',crId:'80309',description:"Enable 'Select Batch' option for pipeline materials",taskType:'Change Request',complexity:'Moderate',estHours:'12',startDate:'2026-02-23',endDate:'2026-02-25',lld:'Document yet to create',status:'Completed',openToTasks:'26-02-2026',comments:''},
-    {date:'23-02-2026',email:'rafi@vegam.co',name:'Rafi',project:'BASF',crId:'80185',description:'Reverting issue when same material is present in multiple line items',taskType:'Bug',complexity:'Moderate',estHours:'12',startDate:'2026-02-24',endDate:'2026-02-25',lld:'N/A',status:'Completed',openToTasks:'25-02-2026',comments:''},
-    {date:'23-02-2026',email:'karthik.koti@vegam.co',name:'Karthik Koti',project:'Henkel',crId:'80224',description:'Considering Rework location for Transfer sheet generation',taskType:'Change Request',complexity:'Complex',estHours:'24',startDate:'2026-02-26',endDate:'2026-03-02',lld:'Document yet to create',status:'Yet to start',openToTasks:'03-03-2026',comments:''},
-    {date:'23-02-2026',email:'nikita@vegam.co',name:'Nikita',project:'BASF',crId:'79213',description:'Delivery Date/Time & Resource Update to Third-Party System',taskType:'Bug',complexity:'Moderate',estHours:'',startDate:'2026-02-23',endDate:'2026-02-24',lld:'',status:'Development',openToTasks:'',comments:''},
-    {date:'23-02-2026',email:'chandan@vegam.co',name:'Chandan',project:'Henkel',crId:'75697',description:'Download template and upload of Change over sop',taskType:'Change Request',complexity:'Moderate',estHours:'',startDate:'2026-02-23',endDate:'2026-02-26',lld:'N/A',status:'Developement',openToTasks:'27-02-2026',comments:''},
-    {date:'23-02-2026',email:'saniya@vegam.co',name:'Saniya',project:'BASF',crId:'79197',description:'Quantity-Based Preferred Bin Rule',taskType:'Bug',complexity:'Simple',estHours:'',startDate:'2026-02-23',endDate:'2026-02-24',lld:'N/A',status:'Development',openToTasks:'',comments:''},
-    {date:'23-02-2026',email:'balram@vegam.co',name:'Balram',project:'BASF',crId:'78781',description:'Enable Split Order workflow',taskType:'Change Request',complexity:'Complex',estHours:'40',startDate:'2026-02-16',endDate:'2026-02-27',lld:'Document yet to create',status:'Development',openToTasks:'30-04-2026',comments:'LLD Preparation phase'},
-    {date:'23-02-2026',email:'balram@vegam.co',name:'Balram',project:'BASF',crId:'78791',description:'Stock transfer details',taskType:'Change Request',complexity:'Complex',estHours:'100',startDate:'2026-02-16',endDate:'2026-03-20',lld:'Document yet to create',status:'LLD',openToTasks:'20-04-2026',comments:''},
-    {date:'23-02-2026',email:'balram@vegam.co',name:'Henkel',crId:'76271',description:'SAP RFC call encryption',taskType:'Change Request',complexity:'Complex',estHours:'60',startDate:'2025-12-08',endDate:'',lld:'Document Created',status:'Hold',openToTasks:'',comments:'waiting for confirmation'},
-    {date:'23-02-2026',email:'goutami@vegam.co',name:'Goutami',project:'BASF',crId:'78122',description:'Capture application process start time and end time',taskType:'Change Request',complexity:'Moderate',estHours:'48',startDate:'2026-02-17',endDate:'2026-02-24',lld:'N/A',status:'Developement',openToTasks:'27-02-2026',comments:'MasterData and web Changes'},
-    {date:'23-02-2026',email:'vaishnavi.gurav@vegam.co',name:'Vaishnavi Gurav',project:'Henkel',crId:'78890',description:'Getting ORA error when AGV info excel sheet is uploaded',taskType:'Bug',complexity:'Simple',estHours:'8',startDate:'2026-02-23',endDate:'2026-02-24',lld:'N/A',status:'Review',openToTasks:'24-02-2026',comments:''},
-    {date:'23-02-2026',email:'narendra@vegam.co',name:'Narendra',project:'BASF',crId:'70987',description:'Enhancements in SFG Stock Booking to Container',taskType:'Bug',complexity:'Simple',estHours:'4',startDate:'',endDate:'',lld:'Document Created',status:'Development',openToTasks:'',comments:''},
-    {date:'24-02-2026',email:'basavaraju@vegam.co',name:'Basavaraju',project:'Henkel',crId:'77463',description:'Manage Test Parameters and CCP Parameters at Plant Level',taskType:'Change Request',complexity:'Moderate',estHours:'250',startDate:'2026-02-06',endDate:'2026-03-09',lld:'Document yet to create',status:'Development',openToTasks:'',comments:''},
-    {date:'02-03-2026',email:'premsagar@vegam.co',name:'Premsagar',project:'BASF',crId:'80082',description:'Enable resource scanning when phase has multiple predecessor phases',taskType:'Change Request',complexity:'Moderate',estHours:'16',startDate:'2026-03-02',endDate:'2026-03-04',lld:'Document yet to create',status:'Yet to start',openToTasks:'',comments:''},
-    {date:'02-03-2026',email:'narendra@vegam.co',name:'Narendra',project:'Henkel',crId:'80399',description:'Implementation of Weighing Scale Feature for Gross Weight Capture',taskType:'Change Request',complexity:'Moderate',estHours:'',startDate:'2026-03-04',endDate:'2026-03-06',lld:'Document yet to create',status:'Yet to start',openToTasks:'09-03-2026',comments:''},
-  ];
+async function signOut(){
+  await sb.auth.signOut();
+  currentUser=null; currentProfile=null; allTasks=[]; allUsers=[];
+  $('screen-app').classList.remove('active');
+  $('screen-login').classList.add('active');
+  $('si-email').value=''; $('si-pass').value='';
+  destroyChart('pie'); destroyChart('dev'); destroyChart('proj'); destroyChart('type');
 }
 
+function showLoginError(msg){ const el=$('login-error'); el.textContent=msg; el.style.display='block'; $('login-success').style.display='none'; }
+function showLoginSuccess(msg){ const el=$('login-success'); el.textContent=msg; el.style.display='block'; $('login-error').style.display='none'; }
+
 // ══════════════════════════════════════════
-// POPULATE FILTERS
+// APP INIT
 // ══════════════════════════════════════════
-function populateFilters() {
-  const projects = [...new Set(allTasks.map(t=>t.project).filter(Boolean))].sort();
-  const devs = [...new Set(allTasks.map(t=>t.name).filter(Boolean))].sort();
-
-  const fProj = $('f-project');
-  fProj.innerHTML = '<option value="">All Projects</option>' + projects.map(p=>`<option>${p}</option>`).join('');
-
-  const fDev = $('f-dev');
-  fDev.innerHTML = '<option value="">All Developers</option>' + devs.map(d=>`<option>${d}</option>`).join('');
-
-  const fDev2 = $('f-dev2');
-  fDev2.innerHTML = '<option value="">All Developers</option>' + devs.map(d=>`<option>${d}</option>`).join('');
+function initApp(){
+  $('screen-login').classList.remove('active');
+  $('screen-app').classList.add('active');
+  const p = currentProfile;
+  $('nav-avatar').style.background = avatarColor(p.name);
+  $('nav-avatar').textContent = initials(p.name);
+  $('nav-name').textContent = p.name;
+  $('nav-role').textContent = p.role.toUpperCase();
+  $('nav-role').className = `role-pill role-${p.role}`;
+  $('dash-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  buildNav();
+  // Load profile page data
+  $('prof-name').value = p.name;
+  $('prof-email').value = p.email;
+  $('prof-role').value = p.role;
+  $('prof-team').value = p.team||'';
+  // Route based on role
+  if(p.role==='admin'||p.role==='manager') showPage('dashboard');
+  else showPage('my-tasks');
 }
 
-// ══════════════════════════════════════════
-// RENDER ALL
-// ══════════════════════════════════════════
-function renderAll() {
-  renderStats();
-  renderOverdueBanner();
-  renderCharts();
-  renderTaskTable();
-  renderDevCards();
-  renderDevTable();
-  renderProjectCards();
-}
-
-// ══════════════════════════════════════════
-// STATS
-// ══════════════════════════════════════════
-function renderStats() {
-  const total = allTasks.length;
-  const completed = allTasks.filter(t=>normalizeStatus(t.status)==='completed').length;
-  const dev = allTasks.filter(t=>normalizeStatus(t.status)==='development').length;
-  const yts = allTasks.filter(t=>normalizeStatus(t.status)==='yts').length;
-  const hold = allTasks.filter(t=>normalizeStatus(t.status)==='hold').length;
-  const overdue = allTasks.filter(isOverdue).length;
-  const pct = total ? Math.round(completed/total*100) : 0;
-
-  $('stats-grid').innerHTML = `
-    <div class="stat-card sc-total">
-      <div class="stat-icon" style="background:#EEF2FF">📦</div>
-      <div class="stat-num" style="color:var(--accent)">${total}</div>
-      <div class="stat-label">Total Tasks</div>
-      <div class="stat-sub">${pct}% complete</div>
-    </div>
-    <div class="stat-card sc-completed">
-      <div class="stat-icon" style="background:var(--green-bg)">✅</div>
-      <div class="stat-num" style="color:var(--green)">${completed}</div>
-      <div class="stat-label">Completed</div>
-      <div class="stat-sub">${pct}% of total</div>
-    </div>
-    <div class="stat-card sc-dev">
-      <div class="stat-icon" style="background:var(--blue-bg)">V</div>
-      <div class="stat-num" style="color:var(--blue)">${dev}</div>
-      <div class="stat-label">In Development</div>
-      <div class="stat-sub">Active tasks</div>
-    </div>
-    <div class="stat-card sc-yts">
-      <div class="stat-icon" style="background:var(--yellow-bg)">📋</div>
-      <div class="stat-num" style="color:var(--yellow)">${yts}</div>
-      <div class="stat-label">Yet to Start</div>
-      <div class="stat-sub">Queued up</div>
-    </div>
-    <div class="stat-card sc-hold">
-      <div class="stat-icon" style="background:var(--orange-bg)">⏸</div>
-      <div class="stat-num" style="color:var(--orange)">${hold}</div>
-      <div class="stat-label">On Hold</div>
-      <div class="stat-sub">Blocked</div>
-    </div>
-    <div class="stat-card sc-overdue">
-      <div class="stat-icon" style="background:var(--red-bg)">🚨</div>
-      <div class="stat-num" style="color:var(--red)">${overdue}</div>
-      <div class="stat-label">Overdue</div>
-      <div class="stat-sub">Past end date</div>
-    </div>`;
-}
-
-// ══════════════════════════════════════════
-// OVERDUE BANNER
-// ══════════════════════════════════════════
-function renderOverdueBanner() {
-  const overdue = allTasks.filter(isOverdue);
-  const wrap = $('overdue-banner');
-  if (!overdue.length) { wrap.innerHTML = ''; return; }
-  wrap.innerHTML = `<div class="alert-banner">
-    <span style="font-size:20px">🚨</span>
-    <div style="flex:1">
-      <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px">${overdue.length} task${overdue.length>1?'s':''} overdue — immediate attention needed</div>
-      <div class="alert-chips">${overdue.map(t=>`<span class="alert-chip">${t.crId} · ${t.name} · ${t.project}</span>`).join('')}</div>
-    </div>
-  </div>`;
-}
-
-// ══════════════════════════════════════════
-// CHARTS
-// ══════════════════════════════════════════
-function renderCharts() {
-  // Status counts (normalised)
-  const statusMap = {};
-  allTasks.forEach(t => {
-    const s = normalizeStatus(t.status);
-    const label = s==='completed'?'Completed':s==='development'?'Development':s==='yts'?'Yet to Start':s==='hold'?'Hold':s==='review'?'Review':s==='lld'?'LLD':t.status||'Other';
-    statusMap[label] = (statusMap[label]||0)+1;
-  });
-
-  // Pie chart
-  destroyChart('pie');
-  charts.pie = new Chart($('pieChart').getContext('2d'), {
-    type:'doughnut',
-    data:{
-      labels:Object.keys(statusMap),
-      datasets:[{data:Object.values(statusMap),backgroundColor:['#10B981','#3B82F6','#F59E0B','#F97316','#8B5CF6','#06B6D4','#94A3B8'],borderWidth:0,hoverOffset:6}]
-    },
-    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
-      plugins:{legend:{position:'right',labels:{color:'#5A6080',font:{family:'Outfit',size:12},padding:12,usePointStyle:true,pointStyleWidth:8}},
-        tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw} tasks`}}}}
-  });
-
-  // Dev bar chart
-  const devMap = {};
-  allTasks.forEach(t => {
-    if(!devMap[t.name]) devMap[t.name]={completed:0,development:0,yts:0,hold:0,other:0};
-    devMap[t.name][normalizeStatus(t.status)]++;
-  });
-  const devLabels = Object.keys(devMap);
-  destroyChart('dev');
-  charts.dev = new Chart($('devChart').getContext('2d'), {
-    type:'bar',
-    data:{labels:devLabels,datasets:[
-      {label:'Completed',data:devLabels.map(d=>devMap[d].completed),backgroundColor:'#10B981',borderRadius:4},
-      {label:'Development',data:devLabels.map(d=>devMap[d].development),backgroundColor:'#3B82F6',borderRadius:4},
-      {label:'Yet to Start',data:devLabels.map(d=>devMap[d].yts),backgroundColor:'#F59E0B',borderRadius:4},
-      {label:'Hold',data:devLabels.map(d=>devMap[d].hold),backgroundColor:'#F97316',borderRadius:4},
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{labels:{color:'#5A6080',font:{family:'Outfit',size:11},usePointStyle:true,padding:10}}},
-      scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#9BA0BC',font:{family:'Outfit',size:11},maxRotation:35}},
-              y:{stacked:true,grid:{color:'#F0F2F8'},ticks:{color:'#9BA0BC',font:{family:'JetBrains Mono',size:9},stepSize:1}}}}
-  });
-
-  // Project chart
-  const projMap = {};
-  allTasks.forEach(t => { projMap[t.project]=(projMap[t.project]||0)+1; });
-  destroyChart('proj');
-  charts.proj = new Chart($('projChart').getContext('2d'), {
-    type:'bar',
-    data:{
-      labels:Object.keys(projMap),
-      datasets:[{data:Object.values(projMap),backgroundColor:Object.keys(projMap).map(p=>projColor(p)),borderRadius:6}]
-    },
-    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
-      plugins:{legend:{display:false}},
-      scales:{x:{grid:{color:'#F0F2F8'},ticks:{color:'#9BA0BC',font:{family:'JetBrains Mono',size:9},stepSize:1}},
-              y:{grid:{display:false},ticks:{color:'#5A6080',font:{family:'Outfit',size:12}}}}}
-  });
-
-  // Type chart
-  const typeMap = {};
-  allTasks.forEach(t => { const tp=t.taskType||'Other'; typeMap[tp]=(typeMap[tp]||0)+1; });
-  destroyChart('type');
-  charts.type = new Chart($('typeChart').getContext('2d'), {
-    type:'doughnut',
-    data:{
-      labels:Object.keys(typeMap),
-      datasets:[{data:Object.values(typeMap),backgroundColor:['#4F46E5','#EF4444','#10B981','#F59E0B','#8B5CF6'],borderWidth:0,hoverOffset:6}]
-    },
-    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
-      plugins:{legend:{position:'right',labels:{color:'#5A6080',font:{family:'Outfit',size:12},padding:12,usePointStyle:true,pointStyleWidth:8}}}}
-  });
-}
-
-// ══════════════════════════════════════════
-// TASK TABLE
-// ══════════════════════════════════════════
-function renderTaskTable() {
-  const q = ($('search-inp').value||'').toLowerCase();
-  const fP = $('f-project').value;
-  const fS = $('f-status').value;
-  const fT = $('f-type').value;
-  const fD = $('f-dev').value;
-  const filtered = allTasks.filter(t =>
-    (!q || t.crId.toLowerCase().includes(q) || t.name.toLowerCase().includes(q) || t.project.toLowerCase().includes(q) || t.description.toLowerCase().includes(q)) &&
-    (!fP || t.project === fP) &&
-    (!fS || t.status.toLowerCase().includes(fS.toLowerCase())) &&
-    (!fT || t.taskType.toLowerCase().includes(fT.toLowerCase())) &&
-    (!fD || t.name === fD)
-  );
-  $('task-count').textContent = filtered.length;
-  $('task-tbody').innerHTML = filtered.length ? filtered.map(t => {
-    const over = isOverdue(t);
-    return `<tr style="${over?'background:#FFF9F9':''}">
-      <td><span class="tid">${t.crId}</span></td>
-      <td><div class="dev-cell">
-        <div class="dev-avatar" style="background:${avatarColor(t.name)}">${initials(t.name)}</div>
-        <div><div class="dev-name">${t.name}</div><div class="dev-email">${t.email}</div></div>
-      </div></td>
-      <td><span class="proj-tag" style="background:${projColor(t.project)}18;color:${projColor(t.project)}">${t.project}</span></td>
-      <td class="task-title-cell"><div class="task-title-text" title="${t.description}">${t.description}</div></td>
-      <td>${typeBadge(t.taskType)}</td>
-      <td>${complexBadge(t.complexity)}</td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center">${t.estHours||'—'}</td>
-      <td style="font-size:11.5px;font-family:'JetBrains Mono',monospace;color:var(--text2);white-space:nowrap">${fmt(t.startDate)}</td>
-      <td style="font-size:11.5px;font-family:'JetBrains Mono',monospace;white-space:nowrap;color:${over?'var(--red)':'var(--text2)'}">${fmt(t.endDate)}${over?' ⚠':''}</td>
-      <td>${statusBadge(t.status)}</td>
-    </tr>`;
-  }).join('') : `<tr><td colspan="10" style="text-align:center;padding:48px;color:var(--text2)">No tasks found matching your filters</td></tr>`;
-}
-
-// ══════════════════════════════════════════
-// DEVELOPER CARDS
-// ══════════════════════════════════════════
-function renderDevCards() {
-  const devMap = {};
-  allTasks.forEach(t => {
-    if(!devMap[t.name]) devMap[t.name]={name:t.name,email:t.email,tasks:[],completed:0,dev:0,yts:0,hold:0};
-    devMap[t.name].tasks.push(t);
-    const n=normalizeStatus(t.status);
-    if(n==='completed') devMap[t.name].completed++;
-    else if(n==='development') devMap[t.name].dev++;
-    else if(n==='yts') devMap[t.name].yts++;
-    else if(n==='hold') devMap[t.name].hold++;
-  });
-
-  $('dev-cards').innerHTML = Object.values(devMap).map(d => {
-    const total = d.tasks.length || 1;
-    const projects = [...new Set(d.tasks.map(t=>t.project).filter(Boolean))].join(', ');
-    return `<div class="dev-card">
-      <div class="dev-card-top">
-        <div class="dev-big-avatar" style="background:${avatarColor(d.name)}">${initials(d.name)}</div>
-        <div>
-          <div class="dev-card-name">${d.name}</div>
-          <div class="dev-card-email">${d.email}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">${projects}</div>
-        </div>
-      </div>
-      <div class="dev-card-stats">
-        <div class="dev-stat"><div class="dev-stat-num" style="color:var(--accent)">${d.tasks.length}</div><div class="dev-stat-label">TOTAL</div></div>
-        <div class="dev-stat"><div class="dev-stat-num" style="color:var(--green)">${d.completed}</div><div class="dev-stat-label">DONE</div></div>
-        <div class="dev-stat"><div class="dev-stat-num" style="color:var(--blue)">${d.dev}</div><div class="dev-stat-label">DEV</div></div>
-        <div class="dev-stat"><div class="dev-stat-num" style="color:var(--yellow)">${d.yts}</div><div class="dev-stat-label">YTS</div></div>
-        <div class="dev-stat"><div class="dev-stat-num" style="color:var(--orange)">${d.hold}</div><div class="dev-stat-label">HOLD</div></div>
-      </div>
-      <div class="dev-mini-bar">
-        <div class="dev-mini-seg" style="width:${d.completed/total*100}%;background:var(--green)"></div>
-        <div class="dev-mini-seg" style="width:${d.dev/total*100}%;background:var(--blue)"></div>
-        <div class="dev-mini-seg" style="width:${d.yts/total*100}%;background:var(--yellow)"></div>
-        <div class="dev-mini-seg" style="width:${d.hold/total*100}%;background:var(--orange)"></div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderDevTable() {
-  const fD = $('f-dev2').value;
-  const filtered = fD ? allTasks.filter(t=>t.name===fD) : allTasks;
-  $('dev-tbody').innerHTML = filtered.map(t => {
-    const over = isOverdue(t);
-    return `<tr>
-      <td><div class="dev-cell"><div class="dev-avatar" style="background:${avatarColor(t.name)}">${initials(t.name)}</div><div class="dev-name">${t.name}</div></div></td>
-      <td><span class="tid">${t.crId}</span></td>
-      <td><span class="proj-tag" style="background:${projColor(t.project)}18;color:${projColor(t.project)};font-size:11px">${t.project}</span></td>
-      <td><div style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px" title="${t.description}">${t.description}</div></td>
-      <td>${typeBadge(t.taskType)}</td>
-      <td>${statusBadge(t.status)}</td>
-      <td style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${over?'var(--red)':'var(--text2)'};white-space:nowrap">${fmt(t.endDate)}${over?' ⚠':''}</td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center">${t.estHours||'—'}</td>
-    </tr>`;
-  }).join('') || `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text2)">No tasks found</td></tr>`;
-}
-
-// ══════════════════════════════════════════
-// PROJECT CARDS
-// ══════════════════════════════════════════
-function renderProjectCards() {
-  const projMap = {};
-  allTasks.forEach(t => {
-    if(!projMap[t.project]) projMap[t.project]={name:t.project,tasks:[],devs:new Set()};
-    projMap[t.project].tasks.push(t);
-    projMap[t.project].devs.add(t.name);
-  });
-
-  $('proj-cards').innerHTML = Object.values(projMap).map(p => {
-    const total = p.tasks.length || 1;
-    const done = p.tasks.filter(t=>normalizeStatus(t.status)==='completed').length;
-    const dev = p.tasks.filter(t=>normalizeStatus(t.status)==='development').length;
-    const yts = p.tasks.filter(t=>normalizeStatus(t.status)==='yts').length;
-    const hold = p.tasks.filter(t=>normalizeStatus(t.status)==='hold').length;
-    const pct = Math.round(done/total*100);
-    return `<div class="proj-card">
-      <div class="proj-card-header">
-        <div class="proj-dot" style="background:${projColor(p.name)}"></div>
-        <div>
-          <div class="proj-name">${p.name}</div>
-          <div class="proj-meta">${p.tasks.length} tasks · ${p.devs.size} developers</div>
-        </div>
-        <div style="margin-left:auto;font-size:22px;font-weight:800;color:${projColor(p.name)}">${pct}%</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-        ${[['✅',done,'var(--green)'],['⚡',dev,'var(--blue)'],['📋',yts,'var(--yellow)'],['⏸',hold,'var(--orange)']].map(([ic,n,c])=>
-          `<div style="flex:1;min-width:48px;background:var(--surface2);border-radius:8px;padding:8px 4px;text-align:center">
-            <div style="font-size:16px;font-weight:800;color:${c}">${n}</div>
-            <div style="font-size:10px;color:var(--text3)">${ic}</div>
-          </div>`).join('')}
-      </div>
-      <div style="height:6px;border-radius:100px;background:var(--surface2);overflow:hidden;display:flex">
-        <div style="width:${done/total*100}%;background:var(--green)"></div>
-        <div style="width:${dev/total*100}%;background:var(--blue)"></div>
-        <div style="width:${yts/total*100}%;background:var(--yellow)"></div>
-        <div style="width:${hold/total*100}%;background:var(--orange)"></div>
-      </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--text3)">Devs: ${[...p.devs].join(', ')}</div>
-    </div>`;
-  }).join('');
-
-  // Project bar chart
-  const pLabels = Object.keys(projMap);
-  destroyChart('projBar');
-  charts.projBar = new Chart($('projBarChart').getContext('2d'), {
-    type:'bar',
-    data:{labels:pLabels,datasets:[
-      {label:'Completed',data:pLabels.map(p=>projMap[p].tasks.filter(t=>normalizeStatus(t.status)==='completed').length),backgroundColor:'#10B981',borderRadius:4},
-      {label:'Development',data:pLabels.map(p=>projMap[p].tasks.filter(t=>normalizeStatus(t.status)==='development').length),backgroundColor:'#3B82F6',borderRadius:4},
-      {label:'Yet to Start',data:pLabels.map(p=>projMap[p].tasks.filter(t=>normalizeStatus(t.status)==='yts').length),backgroundColor:'#F59E0B',borderRadius:4},
-      {label:'Hold',data:pLabels.map(p=>projMap[p].tasks.filter(t=>normalizeStatus(t.status)==='hold').length),backgroundColor:'#F97316',borderRadius:4},
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{labels:{color:'#5A6080',font:{family:'Outfit',size:12},usePointStyle:true,padding:14}}},
-      scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#5A6080',font:{family:'Outfit',size:13}}},
-              y:{stacked:true,grid:{color:'#F0F2F8'},ticks:{color:'#9BA0BC',font:{family:'JetBrains Mono',size:9},stepSize:1}}}}
-  });
+function buildNav(){
+  const r = currentProfile.role;
+  const tabs = [];
+  if(r==='admin'||r==='manager'){
+    tabs.push({id:'dashboard',label:'📊 Dashboard'});
+    tabs.push({id:'tasks',label:'📋 All Tasks'});
+  }
+  if(r==='developer'||r==='tester'){
+    tabs.push({id:'my-tasks',label:'📋 My Tasks'});
+  }
+  if(r==='admin'){
+    tabs.push({id:'users',label:'👥 Users'});
+  }
+  tabs.push({id:'profile',label:'⚙ Profile'});
+  $('nav-tabs').innerHTML = tabs.map(t=>`<button class="nav-tab" id="nav-${t.id}" onclick="showPage('${t.id}')">${t.label}</button>`).join('');
 }
 
 // ══════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════
-function _showPageBase(id) {
+function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  $('page-'+id).classList.add('active');
+  $(`page-${id}`)?.classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  $('tab-'+id).classList.add('active');
+  $(`nav-${id}`)?.classList.add('active');
+  if(id==='dashboard') loadDashboard();
+  if(id==='tasks') loadAllTasks();
+  if(id==='my-tasks') loadMyTasks();
+  if(id==='users') loadUsers();
 }
 
-
 // ══════════════════════════════════════════
-// TEAMS FEATURE
+// DASHBOARD
 // ══════════════════════════════════════════
-let userTeams = JSON.parse(localStorage.getItem('vegam_teams') || '[]');
-let currentTeamId = null;
-let newTeamMembers = [];
-let teamCharts = {};
-
-function saveTeams(){ try{ localStorage.setItem('vegam_teams', JSON.stringify(userTeams)); }catch(e){} }
-function destroyTeamChart(k){ if(teamCharts[k]){ teamCharts[k].destroy(); delete teamCharts[k]; } }
-
-// ── Render teams list ──
-function renderTeamsList(){
-  const grid = $('teams-list-grid');
-  const empty = $('teams-empty');
-  if(!userTeams.length){ grid.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display='none';
-  grid.innerHTML = `<div class="teams-grid">${userTeams.map(team=>{
-    const members = team.members || [];
-    const teamTasks = allTasks.filter(t=>members.includes(t.name));
-    const total = teamTasks.length;
-    const done = teamTasks.filter(t=>normalizeStatus(t.status)==='completed').length;
-    const dev = teamTasks.filter(t=>normalizeStatus(t.status)==='development').length;
-    const yts = teamTasks.filter(t=>normalizeStatus(t.status)==='yts').length;
-    const hold = teamTasks.filter(t=>normalizeStatus(t.status)==='hold').length;
-    const pct = total ? Math.round(done/total*100) : 0;
-    return `<div class="team-card-ct" style="--team-color:${team.color}">
-      <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${team.color};border-radius:var(--radius) var(--radius) 0 0"></div>
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:40px;height:40px;border-radius:10px;background:${team.color}22;border:2px solid ${team.color}44;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:${team.color}">${team.name.charAt(0).toUpperCase()}</div>
-          <div>
-            <div style="font-size:15px;font-weight:700">${team.name}</div>
-            <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace">${members.length} member${members.length!==1?'s':''} · ${total} tasks</div>
-          </div>
-        </div>
-        <div style="font-size:22px;font-weight:800;color:${team.color}">${pct}%</div>
-      </div>
-
-      <!-- member avatars -->
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
-        ${members.map(m=>`<div style="display:flex;align-items:center;gap:5px;background:var(--surface2);border-radius:100px;padding:3px 10px 3px 4px;font-size:12px;font-weight:500">
-          <div style="width:20px;height:20px;border-radius:50%;background:${avatarColor(m)};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff">${initials(m)}</div>
-          ${m}
-        </div>`).join('')}
-        ${!members.length?'<span style="font-size:12px;color:var(--text3)">No members yet</span>':''}
-      </div>
-
-      <!-- mini progress bar -->
-      <div style="height:6px;border-radius:100px;background:var(--surface2);overflow:hidden;display:flex;margin-bottom:10px">
-        <div style="width:${total?done/total*100:0}%;background:var(--green)"></div>
-        <div style="width:${total?dev/total*100:0}%;background:var(--blue)"></div>
-        <div style="width:${total?yts/total*100:0}%;background:var(--yellow)"></div>
-        <div style="width:${total?hold/total*100:0}%;background:var(--orange)"></div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:16px">
-        ${[['✅',done,'var(--green)'],['⚡',dev,'var(--blue)'],['📋',yts,'var(--yellow)'],['⏸',hold,'var(--orange)']].map(([ic,n,c])=>`<span style="font-size:11px;color:${c};font-family:'JetBrains Mono',monospace">${ic} ${n}</span>`).join('')}
-      </div>
-
-      <div class="team-card-actions">
-        <button class="team-btn team-btn-view" onclick="viewTeamDashboard('${team.id}')">📊 View Dashboard</button>
-        <button class="team-btn team-btn-edit" onclick="editTeam('${team.id}')">✏ Edit</button>
-        <button class="team-btn team-btn-del" onclick="deleteTeam('${team.id}')">🗑</button>
-      </div>
-    </div>`;
-  }).join('')}</div>`;
+async function loadDashboard(){
+  const {data} = await sb.from('tasks').select('*').order('created_at',{ascending:false});
+  allTasks = data || [];
+  renderDashboardStats();
+  renderDashboardCharts();
+  renderOverdueBanner();
 }
 
-// ── View team dashboard ──
-function viewTeamDashboard(teamId){
-  const team = userTeams.find(t=>t.id===teamId);
-  if(!team) return;
-  currentTeamId = teamId;
-  $('teams-manager').style.display='none';
-  $('team-detail-view').style.display='block';
-  $('team-detail-title').textContent = team.name;
-  $('team-detail-badge').style.cssText=`background:${team.color}18;color:${team.color};border:1px solid ${team.color}44;padding:3px 12px;border-radius:100px;font-size:12px;font-weight:600`;
-  $('team-detail-badge').textContent = `${team.members.length} members`;
-
-  const members = team.members;
-  const teamTasks = allTasks.filter(t=>members.includes(t.name));
-
-  // Stats
-  const total=teamTasks.length, done=teamTasks.filter(t=>normalizeStatus(t.status)==='completed').length;
-  const dev=teamTasks.filter(t=>normalizeStatus(t.status)==='development').length;
-  const yts=teamTasks.filter(t=>normalizeStatus(t.status)==='yts').length;
-  const hold=teamTasks.filter(t=>normalizeStatus(t.status)==='hold').length;
-  const overdue=teamTasks.filter(isOverdue).length;
+function renderDashboardStats(){
+  const total=allTasks.length;
+  const done=allTasks.filter(t=>normalizeStatus(t.status)==='completed').length;
+  const dev=allTasks.filter(t=>normalizeStatus(t.status)==='development').length;
+  const yts=allTasks.filter(t=>normalizeStatus(t.status)==='yts').length;
+  const overdue=allTasks.filter(isOverdue).length;
   const pct=total?Math.round(done/total*100):0;
-  $('team-stats-grid').innerHTML=`
-    <div class="stat-card sc-total"><div class="stat-icon" style="background:${team.color}18">#️⃣</div><div class="stat-num" style="color:${team.color}">${total}</div><div class="stat-label">Total Tasks</div><div class="stat-sub">${pct}% done</div></div>
-    <div class="stat-card sc-completed"><div class="stat-icon" style="background:var(--green-bg)">✅</div><div class="stat-num" style="color:var(--green)">${done}</div><div class="stat-label">Completed</div><div class="stat-sub">${pct}% of total</div></div>
-    <div class="stat-card sc-dev"><div class="stat-icon" style="background:var(--blue-bg)">⚡</div><div class="stat-num" style="color:var(--blue)">${dev}</div><div class="stat-label">In Development</div><div class="stat-sub">Active</div></div>
-    <div class="stat-card sc-yts"><div class="stat-icon" style="background:var(--yellow-bg)">📋</div><div class="stat-num" style="color:var(--yellow)">${yts}</div><div class="stat-label">Yet to Start</div><div class="stat-sub">Queued</div></div>
-    <div class="stat-card sc-overdue"><div class="stat-icon" style="background:var(--red-bg)">🚨</div><div class="stat-num" style="color:var(--red)">${overdue}</div><div class="stat-label">Overdue</div><div class="stat-sub">Past due date</div></div>
-    <div class="stat-card sc-hold"><div class="stat-icon" style="background:var(--orange-bg)">⏸</div><div class="stat-num" style="color:var(--orange)">${hold}</div><div class="stat-label">On Hold</div><div class="stat-sub">Blocked</div></div>`;
+  $('dash-stats').innerHTML=`
+    <div class="stat-card sc-total"><div class="stat-icon" style="background:var(--accent-light)">📦</div><div class="stat-num" style="color:var(--accent)">${total}</div><div class="stat-label">Total Tasks</div></div>
+    <div class="stat-card sc-done"><div class="stat-icon" style="background:var(--green-bg)">✅</div><div class="stat-num" style="color:var(--green)">${done}</div><div class="stat-label">Completed · ${pct}%</div></div>
+    <div class="stat-card sc-dev"><div class="stat-icon" style="background:var(--blue-bg)">⚡</div><div class="stat-num" style="color:var(--blue)">${dev}</div><div class="stat-label">In Development</div></div>
+    <div class="stat-card sc-yts"><div class="stat-icon" style="background:var(--yellow-bg)">📋</div><div class="stat-num" style="color:var(--yellow)">${yts}</div><div class="stat-label">Yet to Start</div></div>
+    <div class="stat-card sc-overdue"><div class="stat-icon" style="background:var(--red-bg)">🚨</div><div class="stat-num" style="color:var(--red)">${overdue}</div><div class="stat-label">Overdue</div></div>`;
+}
 
-  // Pie chart
-  const statusMap={};
-  teamTasks.forEach(t=>{ const s=normalizeStatus(t.status); const label=s==='completed'?'Completed':s==='development'?'Development':s==='yts'?'Yet to Start':s==='hold'?'Hold':s==='review'?'Review':t.status||'Other'; statusMap[label]=(statusMap[label]||0)+1; });
-  destroyTeamChart('pie');
-  teamCharts.pie = new Chart($('teamPieChart').getContext('2d'),{
+function renderOverdueBanner(){
+  const overdue=allTasks.filter(isOverdue);
+  const wrap=$('overdue-banner');
+  if(!overdue.length){ wrap.innerHTML=''; return; }
+  wrap.innerHTML=`<div class="alert-banner"><span style="font-size:20px">🚨</span><div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px">${overdue.length} overdue task${overdue.length>1?'s':''}</div><div class="alert-chips">${overdue.map(t=>`<span class="alert-chip">${t.tracker_id} · ${t.assigned_name||t.assigned_to} · Due ${fmt(t.end_date)}</span>`).join('')}</div></div></div>`;
+}
+
+function renderDashboardCharts(){
+  // Status pie
+  const sc={};
+  allTasks.forEach(t=>{ const s=t.status||'Yet to Start'; sc[s]=(sc[s]||0)+1; });
+  destroyChart('pie');
+  charts.pie=new Chart($('pieChart').getContext('2d'),{
     type:'doughnut',
-    data:{labels:Object.keys(statusMap),datasets:[{data:Object.values(statusMap),backgroundColor:['#10B981','#3B82F6','#F59E0B','#F97316','#8B5CF6','#94A3B8'],borderWidth:0,hoverOffset:6}]},
+    data:{labels:Object.keys(sc),datasets:[{data:Object.values(sc),backgroundColor:['#10B981','#3B82F6','#F59E0B','#F97316','#8B5CF6','#94A3B8'],borderWidth:0,hoverOffset:6}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'right',labels:{color:'#5A6080',font:{family:'Outfit',size:12},padding:12,usePointStyle:true,pointStyleWidth:8}},tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw}`}}}}
   });
-
   // Dev bar
-  const devMap={};
-  teamTasks.forEach(t=>{ if(!devMap[t.name]) devMap[t.name]={completed:0,development:0,yts:0,hold:0}; devMap[t.name][normalizeStatus(t.status)]++; });
-  const dLabels=Object.keys(devMap);
-  destroyTeamChart('dev');
-  teamCharts.dev = new Chart($('teamDevChart').getContext('2d'),{
+  const dm={};
+  allTasks.forEach(t=>{ const n=t.assigned_name||t.assigned_to||'Unknown'; if(!dm[n]) dm[n]={completed:0,development:0,yts:0,hold:0}; dm[n][normalizeStatus(t.status)]++; });
+  const dl=Object.keys(dm);
+  destroyChart('dev');
+  charts.dev=new Chart($('devChart').getContext('2d'),{
     type:'bar',
-    data:{labels:dLabels,datasets:[
-      {label:'Completed',data:dLabels.map(d=>devMap[d].completed),backgroundColor:'#10B981',borderRadius:4},
-      {label:'Development',data:dLabels.map(d=>devMap[d].development),backgroundColor:'#3B82F6',borderRadius:4},
-      {label:'Yet to Start',data:dLabels.map(d=>devMap[d].yts),backgroundColor:'#F59E0B',borderRadius:4},
-      {label:'Hold',data:dLabels.map(d=>devMap[d].hold),backgroundColor:'#F97316',borderRadius:4},
+    data:{labels:dl,datasets:[
+      {label:'Completed',data:dl.map(d=>dm[d].completed),backgroundColor:'#10B981',borderRadius:4},
+      {label:'Development',data:dl.map(d=>dm[d].development),backgroundColor:'#3B82F6',borderRadius:4},
+      {label:'Yet to Start',data:dl.map(d=>dm[d].yts),backgroundColor:'#F59E0B',borderRadius:4},
+      {label:'Hold',data:dl.map(d=>dm[d].hold),backgroundColor:'#F97316',borderRadius:4},
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5A6080',font:{family:'Outfit',size:11},usePointStyle:true,padding:10}}},
-      scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#9BA0BC',font:{family:'Outfit',size:11}}},y:{stacked:true,grid:{color:'#F0F2F8'},ticks:{color:'#9BA0BC',font:{family:'JetBrains Mono',size:9},stepSize:1}}}}
+      scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#9BA0BC',font:{family:'Outfit',size:10},maxRotation:35}},y:{stacked:true,grid:{color:'#F0F2F8'},ticks:{color:'#9BA0BC',font:{size:9},stepSize:1}}}}
   });
-
-  // Populate member filter
-  $('f-team-member').innerHTML='<option value="">All Members</option>'+members.map(m=>`<option>${m}</option>`).join('');
-  $('team-table-title').textContent = team.name+' — Tasks';
-  renderTeamTaskTable();
+  // Project chart
+  const pm={};
+  allTasks.forEach(t=>{ pm[t.project||'Other']=(pm[t.project||'Other']||0)+1; });
+  destroyChart('proj');
+  charts.proj=new Chart($('projChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:Object.keys(pm),datasets:[{data:Object.values(pm),backgroundColor:Object.keys(pm).map(p=>projColor(p)),borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'#F0F2F8'},ticks:{color:'#9BA0BC',font:{size:9},stepSize:1}},y:{grid:{display:false},ticks:{color:'#5A6080',font:{family:'Outfit',size:12}}}}}
+  });
+  // Type chart
+  const tm={};
+  allTasks.forEach(t=>{ tm[t.task_type||'Other']=(tm[t.task_type||'Other']||0)+1; });
+  destroyChart('type');
+  charts.type=new Chart($('typeChart').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:Object.keys(tm),datasets:[{data:Object.values(tm),backgroundColor:['#4F46E5','#EF4444','#10B981','#F59E0B','#8B5CF6'],borderWidth:0,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{color:'#5A6080',font:{family:'Outfit',size:12},padding:12,usePointStyle:true,pointStyleWidth:8}}}}
+  });
 }
 
-function renderTeamTaskTable(){
-  const team = userTeams.find(t=>t.id===currentTeamId);
-  if(!team) return;
-  const fS=$('f-team-status').value, fM=$('f-team-member').value;
-  const teamTasks = allTasks.filter(t=>team.members.includes(t.name)&&(!fS||t.status.toLowerCase().includes(fS.toLowerCase()))&&(!fM||t.name===fM));
-  $('team-task-count').textContent=teamTasks.length;
-  $('team-task-tbody').innerHTML = teamTasks.length ? teamTasks.map(t=>{
+// ══════════════════════════════════════════
+// ALL TASKS
+// ══════════════════════════════════════════
+async function loadAllTasks(){
+  const {data} = await sb.from('tasks').select('*').order('created_at',{ascending:false});
+  allTasks = data || [];
+  // Populate filters
+  const projects=[...new Set(allTasks.map(t=>t.project).filter(Boolean))];
+  const assignees=[...new Set(allTasks.map(t=>t.assigned_name||t.assigned_to).filter(Boolean))];
+  $('f-project').innerHTML='<option value="">All Projects</option>'+projects.map(p=>`<option>${p}</option>`).join('');
+  $('f-assignee').innerHTML='<option value="">All Assignees</option>'+assignees.map(a=>`<option>${a}</option>`).join('');
+  renderTaskTable();
+}
+
+function renderTaskTable(){
+  const q=($('search-inp').value||'').toLowerCase();
+  const fS=$('f-status').value, fP=$('f-project').value, fA=$('f-assignee').value;
+  const filtered=allTasks.filter(t=>
+    (!q||t.tracker_id?.toLowerCase().includes(q)||t.title?.toLowerCase().includes(q)||(t.assigned_name||t.assigned_to||'').toLowerCase().includes(q))&&
+    (!fS||t.status===fS)&&(!fP||t.project===fP)&&(!fA||(t.assigned_name||t.assigned_to)===fA)
+  );
+  $('task-count').textContent=filtered.length;
+  $('task-tbody').innerHTML=filtered.length?filtered.map(t=>{
     const over=isOverdue(t);
     return `<tr style="${over?'background:#FFF9F9':''}">
-      <td><span class="tid">${t.crId}</span></td>
-      <td><div class="dev-cell"><div class="dev-avatar" style="background:${avatarColor(t.name)}">${initials(t.name)}</div><div><div class="dev-name">${t.name}</div></div></div></td>
-      <td><span class="proj-tag" style="background:${projColor(t.project)}18;color:${projColor(t.project)};font-size:11px">${t.project}</span></td>
-      <td><div style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px" title="${t.description}">${t.description}</div></td>
-      <td>${typeBadge(t.taskType)}</td>
+      <td><span class="tid">${t.tracker_id||'—'}</span></td>
+      <td><div style="font-weight:600;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</div><div style="font-size:11px;color:var(--text2);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.description||''}</div></td>
+      <td><div class="person-cell"><div class="avatar" style="background:${avatarColor(t.assigned_name||t.assigned_to||'')}">${initials(t.assigned_name||t.assigned_to||'?')}</div>${t.assigned_name||t.assigned_to||'—'}</div></td>
+      <td><span style="background:${projColor(t.project)}18;color:${projColor(t.project)};padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600">${t.project||'—'}</span></td>
+      <td>${typeBadge(t.task_type)}</td>
       <td>${complexBadge(t.complexity)}</td>
-      <td style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${over?'var(--red)':'var(--text2)'};white-space:nowrap">${fmt(t.endDate)}${over?' ⚠':''}</td>
-      <td>${statusBadge(t.status)}</td>
+      <td style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text2)">${fmt(t.start_date)}</td>
+      <td style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${over?'var(--red)':'var(--text2)'}">${fmt(t.end_date)}${over?' ⚠':''}</td>
+      <td>
+        <select class="fsel" style="font-size:11px;padding:4px 8px" onchange="quickUpdateStatus('${t.id}',this.value)">
+          ${['Yet to Start','Development','Review','Completed','Hold'].map(s=>`<option ${t.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td><div style="display:flex;gap:5px">
+        <button class="icon-btn" onclick="openEditTask('${t.id}')" title="Edit">✏️</button>
+        ${currentProfile.role==='admin'?`<button class="icon-btn del" onclick="deleteTask('${t.id}')" title="Delete">🗑</button>`:''}
+      </div></td>
     </tr>`;
-  }).join('') : `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text2)">No tasks found</td></tr>`;
+  }).join(''):`<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No tasks found</div></div></td></tr>`;
 }
 
-function backToTeams(){
-  currentTeamId=null;
-  destroyTeamChart('pie'); destroyTeamChart('dev');
-  $('team-detail-view').style.display='none';
-  $('teams-manager').style.display='block';
-  renderTeamsList();
+async function quickUpdateStatus(id, status){
+  await sb.from('tasks').update({status, updated_at:new Date().toISOString()}).eq('id',id);
+  const t=allTasks.find(x=>x.id===id); if(t) t.status=status;
+  toast(`Status updated to "${status}"`, 'success');
 }
 
-// ── Create team modal ──
-function openCreateTeamModal(){
-  newTeamMembers=[];
-  $('ct-name').value='';
-  $('ct-color').value='#4F46E5';
-  const allDevs=[...new Set(allTasks.map(t=>t.name).filter(Boolean))].sort();
-  $('ct-member-sel').innerHTML=allDevs.map(d=>`<option>${d}</option>`).join('');
-  renderNewTeamMembers();
-  $('create-team-modal').classList.add('open');
-}
-function closeCreateTeamModal(){ $('create-team-modal').classList.remove('open'); newTeamMembers=[]; }
-$('create-team-modal').addEventListener('click',e=>{ if(e.target===$('create-team-modal')) closeCreateTeamModal(); });
-
-function addMemberToNewTeam(){
-  const name=$('ct-member-sel').value;
-  if(!name||newTeamMembers.includes(name)){ toast('Member already added'); return; }
-  newTeamMembers.push(name);
-  renderNewTeamMembers();
-}
-function removeMemberFromNew(name){
-  newTeamMembers=newTeamMembers.filter(m=>m!==name);
-  renderNewTeamMembers();
-}
-function renderNewTeamMembers(){
-  const wrap=$('ct-members-list');
-  if(!newTeamMembers.length){ wrap.innerHTML='<div id="ct-members-empty" style="font-size:12px;color:var(--text3);width:100%;text-align:center;padding:4px">No members added yet</div>'; return; }
-  wrap.innerHTML=newTeamMembers.map(m=>`<div class="member-chip">
-    <div style="width:20px;height:20px;border-radius:50%;background:${avatarColor(m)};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff">${initials(m)}</div>
-    ${m}<button class="member-chip-remove" onclick="removeMemberFromNew('${m}')">×</button>
-  </div>`).join('');
+async function deleteTask(id){
+  if(!confirm('Delete this task?')) return;
+  await sb.from('tasks').delete().eq('id',id);
+  allTasks=allTasks.filter(t=>t.id!==id);
+  renderTaskTable(); toast('Task deleted','success');
 }
 
-function saveNewTeam(){
-  const name=$('ct-name').value.trim();
-  if(!name){ toast('Please enter a team name'); return; }
-  if(!newTeamMembers.length){ toast('Please add at least one member'); return; }
-  const team={ id:'team_'+Date.now(), name, color:$('ct-color').value, members:[...newTeamMembers], createdAt:new Date().toISOString() };
-  userTeams.push(team); saveTeams();
-  closeCreateTeamModal();
-  renderTeamsList();
-  toast(`✅ Team "${name}" created with ${newTeamMembers.length} members!`);
+// ══════════════════════════════════════════
+// MY TASKS (Dev/Tester)
+// ══════════════════════════════════════════
+async function loadMyTasks(){
+  const {data} = await sb.from('tasks').select('*').eq('assigned_to', currentProfile.email).order('created_at',{ascending:false});
+  allTasks = data || [];
+  $('my-tasks-sub').textContent=`${allTasks.length} task${allTasks.length!==1?'s':''} assigned to you`;
+  renderMyStats();
+  renderMyTaskCards();
 }
 
-function deleteTeam(teamId){
-  const team=userTeams.find(t=>t.id===teamId);
-  if(!confirm(`Delete team "${team?.name}"?`)) return;
-  userTeams=userTeams.filter(t=>t.id!==teamId); saveTeams();
-  renderTeamsList();
-  toast('Team deleted');
+function renderMyStats(){
+  const total=allTasks.length;
+  const done=allTasks.filter(t=>normalizeStatus(t.status)==='completed').length;
+  const dev=allTasks.filter(t=>normalizeStatus(t.status)==='development').length;
+  const overdue=allTasks.filter(isOverdue).length;
+  $('my-stats').innerHTML=`
+    <div class="stat-card sc-total"><div class="stat-icon" style="background:var(--accent-light)">📦</div><div class="stat-num" style="color:var(--accent)">${total}</div><div class="stat-label">My Tasks</div></div>
+    <div class="stat-card sc-done"><div class="stat-icon" style="background:var(--green-bg)">✅</div><div class="stat-num" style="color:var(--green)">${done}</div><div class="stat-label">Completed</div></div>
+    <div class="stat-card sc-dev"><div class="stat-icon" style="background:var(--blue-bg)">⚡</div><div class="stat-num" style="color:var(--blue)">${dev}</div><div class="stat-label">In Progress</div></div>
+    <div class="stat-card sc-overdue"><div class="stat-icon" style="background:var(--red-bg)">🚨</div><div class="stat-num" style="color:var(--red)">${overdue}</div><div class="stat-label">Overdue</div></div>`;
 }
 
-function editTeam(teamId){
-  const team=userTeams.find(t=>t.id===teamId);
-  if(!team) return;
-  newTeamMembers=[...team.members];
-  $('ct-name').value=team.name;
-  $('ct-color').value=team.color;
-  const allDevs=[...new Set(allTasks.map(t=>t.name).filter(Boolean))].sort();
-  $('ct-member-sel').innerHTML=allDevs.map(d=>`<option>${d}</option>`).join('');
-  renderNewTeamMembers();
-  // override save to update instead of create
-  const saveBtn=document.querySelector('#create-team-modal button:last-child');
-  saveBtn.onclick=()=>{
-    const name=$('ct-name').value.trim();
-    if(!name||!newTeamMembers.length){ toast('Name and at least one member required'); return; }
-    team.name=name; team.color=$('ct-color').value; team.members=[...newTeamMembers];
-    saveTeams(); closeCreateTeamModal(); renderTeamsList();
-    toast(`Team "${name}" updated!`);
-    saveBtn.onclick=saveNewTeam;
-  };
-  document.querySelector('#create-team-modal .modal-title-ct').textContent='Edit Team';
-  $('create-team-modal').classList.add('open');
-}
-
-// showPage — handles all tabs including Teams
-function showPage(id){
-  _showPageBase(id);
-  if(id==='teams'){
-    $('teams-manager').style.display='block';
-    $('team-detail-view').style.display='none';
-    renderTeamsList();
+function renderMyTaskCards(){
+  const grid=$('my-task-cards');
+  if(!allTasks.length){
+    grid.innerHTML=`<div style="grid-column:1/-1"><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No tasks yet</div><div class="empty-sub">Click "+ Add Task" to submit your first task</div></div></div>`;
+    return;
   }
+  grid.innerHTML=allTasks.map(t=>{
+    const sc=normalizeStatus(t.status), over=isOverdue(t);
+    return `<div class="task-card tc-${sc}" style="${over?'border-color:var(--red-border);':''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+        <span class="tid">${t.tracker_id}</span>
+        ${complexBadge(t.complexity)}
+      </div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.3">${t.title}</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5">${t.description||'No description'}</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        ${statusBadge(t.status)}
+        ${typeBadge(t.task_type)}
+        <span style="background:${projColor(t.project)}18;color:${projColor(t.project)};padding:2px 8px;border-radius:100px;font-size:11px;font-weight:600">${t.project||'—'}</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:10px;border-top:1px solid var(--border)">
+        <select class="fsel" style="font-size:11px;padding:4px 8px" onchange="myQuickStatus('${t.id}',this.value)">
+          ${['Yet to Start','Development','Review','Completed','Hold'].map(s=>`<option ${t.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${over?'var(--red)':'var(--text3)'}">Due ${fmt(t.end_date)}${over?' ⚠':''}</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn btn-outline btn-sm" style="flex:1" onclick="openEditTask('${t.id}')">✏ Edit</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
+async function myQuickStatus(id, status){
+  await sb.from('tasks').update({status, updated_at:new Date().toISOString()}).eq('id',id);
+  const t=allTasks.find(x=>x.id===id); if(t) t.status=status;
+  renderMyStats(); renderMyTaskCards();
+  toast(`Status → "${status}"`, 'success');
+}
 
 // ══════════════════════════════════════════
-// INIT
+// TASK MODAL
 // ══════════════════════════════════════════
-loadData();
+async function openTaskModal(){
+  $('task-modal-title').textContent='Add New Task';
+  $('edit-task-id').value='';
+  $('f-tracker-id').value=''; $('f-title').value=''; $('f-desc').value='';
+  $('f-project').value=''; $('f-type').value=''; $('f-complexity').value='';
+  $('f-hours').value=''; $('f-start').value=today(); $('f-end').value='';
+  $('f-status-modal').value='Yet to Start'; $('f-lld').value=''; $('f-comments').value='';
+  // Populate assignee dropdown
+  const wrap=$('f-assignee-wrap');
+  if(currentProfile.role==='admin'||currentProfile.role==='manager'){
+    wrap.style.display='flex';
+    const {data} = await sb.from('profiles').select('*').eq('is_active',true);
+    $('f-assign-to').innerHTML=(data||[]).map(u=>`<option value="${u.email}">${u.name} (${u.role})</option>`).join('');
+  } else {
+    wrap.style.display='none';
+    $('f-assign-to').innerHTML=`<option value="${currentProfile.email}">${currentProfile.name}</option>`;
+  }
+  $('task-modal').classList.add('open');
+}
+
+async function openEditTask(id){
+  const t=allTasks.find(x=>x.id===id); if(!t) return;
+  $('task-modal-title').textContent='Edit Task';
+  $('edit-task-id').value=id;
+  $('f-tracker-id').value=t.tracker_id||'';
+  $('f-title').value=t.title||'';
+  $('f-desc').value=t.description||'';
+  $('f-project').value=t.project||'';
+  $('f-type').value=t.task_type||'';
+  $('f-complexity').value=t.complexity||'';
+  $('f-hours').value=t.estimated_hours||'';
+  $('f-start').value=t.start_date||'';
+  $('f-end').value=t.end_date||'';
+  $('f-status-modal').value=t.status||'Yet to Start';
+  $('f-lld').value=t.lld||'';
+  $('f-comments').value=t.comments||'';
+  const wrap=$('f-assignee-wrap');
+  if(currentProfile.role==='admin'||currentProfile.role==='manager'){
+    wrap.style.display='flex';
+    const {data} = await sb.from('profiles').select('*').eq('is_active',true);
+    $('f-assign-to').innerHTML=(data||[]).map(u=>`<option value="${u.email}" ${u.email===t.assigned_to?'selected':''}>${u.name} (${u.role})</option>`).join('');
+  } else {
+    wrap.style.display='none';
+    $('f-assign-to').innerHTML=`<option value="${currentProfile.email}">${currentProfile.name}</option>`;
+  }
+  $('task-modal').classList.add('open');
+}
+
+function closeTaskModal(){ $('task-modal').classList.remove('open'); }
+
+async function saveTask(){
+  const trackerId=$('f-tracker-id').value.trim(), title=$('f-title').value.trim();
+  const start=$('f-start').value, end=$('f-end').value;
+  const assignTo=$('f-assign-to').value;
+  if(!trackerId||!title||!start||!end){ toast('Please fill all required fields','error'); return; }
+  if(start>end){ toast('End date must be after start date','error'); return; }
+  // Get assignee name
+  const {data:assigneeData} = await sb.from('profiles').select('name').eq('email',assignTo).single();
+  const assignName = assigneeData?.name || assignTo;
+  const taskData={
+    tracker_id:trackerId, title, description:$('f-desc').value,
+    project:$('f-project').value, task_type:$('f-type').value,
+    complexity:$('f-complexity').value, estimated_hours:parseFloat($('f-hours').value)||0,
+    start_date:start, end_date:end, status:$('f-status-modal').value,
+    lld:$('f-lld').value, comments:$('f-comments').value,
+    assigned_to:assignTo, assigned_name:assignName,
+    team:currentProfile.team||'', created_by:currentProfile.email,
+    updated_at:new Date().toISOString()
+  };
+  const editId=$('edit-task-id').value;
+  if(editId){
+    const {error}=await sb.from('tasks').update(taskData).eq('id',editId);
+    if(error){ toast('Error: '+error.message,'error'); return; }
+    toast('Task updated!','success');
+  } else {
+    const {error}=await sb.from('tasks').insert(taskData);
+    if(error){ toast('Error: '+error.message,'error'); return; }
+    toast('Task added!','success');
+  }
+  closeTaskModal();
+  if(currentProfile.role==='admin'||currentProfile.role==='manager') loadAllTasks();
+  else loadMyTasks();
+}
+
+// ══════════════════════════════════════════
+// USER MANAGEMENT (Admin)
+// ══════════════════════════════════════════
+const ROLE_PERMS = {
+  admin: '✅ Full dashboard & charts<br>✅ See & manage all tasks<br>✅ Manage users & roles<br>✅ Export CSV',
+  manager: '✅ Full dashboard & charts<br>✅ See all tasks (read + edit)<br>✅ Export CSV<br>❌ Cannot manage users',
+  developer: '✅ Submit & manage own tasks<br>✅ Update own task status<br>❌ Cannot see other tasks<br>❌ No dashboard access',
+  tester: '✅ Submit & manage own tasks<br>✅ Update own task status<br>❌ Cannot see other tasks<br>❌ No dashboard access'
+};
+
+async function loadUsers(){
+  const {data} = await sb.from('profiles').select('*').order('name');
+  allUsers = data || [];
+  renderUserStats();
+  renderUserGrid();
+}
+
+function renderUserStats(){
+  $('u-count-total').textContent = allUsers.length;
+  $('u-count-admin').textContent = allUsers.filter(u=>u.role==='admin').length;
+  $('u-count-manager').textContent = allUsers.filter(u=>u.role==='manager').length;
+  $('u-count-dev').textContent = allUsers.filter(u=>u.role==='developer').length;
+  $('u-count-tester').textContent = allUsers.filter(u=>u.role==='tester').length;
+}
+
+function renderUserGrid(){
+  const q = ($('user-search')?.value||'').toLowerCase();
+  const fRole = $('user-filter-role')?.value||'';
+  const fStatus = $('user-filter-status')?.value||'';
+  const filtered = allUsers.filter(u=>
+    (!q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) &&
+    (!fRole || u.role === fRole) &&
+    (!fStatus || (fStatus==='active' ? u.is_active : !u.is_active))
+  );
+  if(!filtered.length){
+    $('user-grid').innerHTML=`<div style="grid-column:1/-1"><div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">No users found</div><div class="empty-sub">Try adjusting your filters</div></div></div>`;
+    return;
+  }
+  $('user-grid').innerHTML = filtered.map(u=>`
+    <div class="user-card" style="opacity:${u.is_active?1:0.6};border:1px solid ${u.is_active?'var(--border)':'var(--border2)'}">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="position:relative">
+          <div class="avatar" style="background:${avatarColor(u.name)};width:44px;height:44px;border-radius:12px;font-size:14px">${initials(u.name)}</div>
+          <div style="position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:${u.is_active?'var(--green)':'var(--text3)'};border:2px solid var(--surface)"></div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.name}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.email}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span class="role-pill role-${u.role}">${u.role.toUpperCase()}</span>
+        <span style="font-size:11px;color:var(--text3);background:var(--surface2);padding:2px 8px;border-radius:4px">${u.team||'No team'}</span>
+      </div>
+      <div style="font-size:11px;color:${u.is_active?'var(--green)':'var(--text3)'};margin-bottom:12px;display:flex;align-items:center;gap:4px">
+        <span style="width:6px;height:6px;border-radius:50%;background:${u.is_active?'var(--green)':'var(--text3)'};display:inline-block"></span>
+        ${u.is_active?'Active':'Deactivated'}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" style="flex:1" onclick="openEditUserModal('${u.id}')">✏ Edit</button>
+        <button class="btn btn-outline btn-sm" onclick="openResetModal('${u.id}','${u.name}')">🔑 Reset PW</button>
+        <button class="btn btn-${u.is_active?'danger':'success'} btn-sm" onclick="toggleUserActive('${u.id}',${!u.is_active})">${u.is_active?'🚫 Off':'✅ On'}</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Open modal to CREATE new user ──
+function openUserModal(){
+  $('edit-user-id').value = '';
+  $('user-modal-title').textContent = 'Add New User';
+  $('user-modal-sub').textContent = 'Create a new team member account';
+  $('um-create-fields').style.display = 'block';
+  $('um-edit-fields').style.display = 'none';
+  $('um-name-new').value = '';
+  $('um-email-new').value = '';
+  $('um-pass-new').value = '';
+  $('um-role').value = 'developer';
+  $('um-team').value = '';
+  $('um-save-btn').textContent = 'Create User';
+  updateRolePreview();
+  $('user-modal').classList.add('open');
+}
+
+// ── Open modal to EDIT existing user ──
+function openEditUserModal(id){
+  const u = allUsers.find(x=>x.id===id); if(!u) return;
+  $('edit-user-id').value = id;
+  $('user-modal-title').textContent = 'Edit User';
+  $('user-modal-sub').textContent = u.email;
+  $('um-create-fields').style.display = 'none';
+  $('um-edit-fields').style.display = 'block';
+  $('um-name').value = u.name;
+  $('um-email').value = u.email;
+  $('um-role').value = u.role;
+  $('um-team').value = u.team||'';
+  $('um-save-btn').textContent = 'Save Changes';
+  updateRolePreview();
+  $('user-modal').classList.add('open');
+}
+
+function closeUserModal(){
+  $('user-modal').classList.remove('open');
+}
+
+function updateRolePreview(){
+  const role = $('um-role').value;
+  $('role-preview').innerHTML = ROLE_PERMS[role]||'';
+}
+
+function generatePassword(){
+  const chars='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+  let p=''; for(let i=0;i<10;i++) p+=chars[Math.floor(Math.random()*chars.length)];
+  $('um-pass-new').value = p;
+}
+
+function generateResetPassword(){
+  const chars='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+  let p=''; for(let i=0;i<10;i++) p+=chars[Math.floor(Math.random()*chars.length)];
+  $('reset-pass').value = p;
+}
+
+async function saveUser(){
+  const editId = $('edit-user-id').value;
+  if(editId){
+    // EDIT existing user
+    const name = $('um-name').value.trim();
+    const role = $('um-role').value;
+    const team = $('um-team').value.trim();
+    if(!name){ toast('Name cannot be empty','error'); return; }
+    const {error} = await sb.from('profiles').update({name, role, team}).eq('id', editId);
+    if(error){ toast('Error: '+error.message,'error'); return; }
+    toast(`✅ ${name}'s profile updated!`, 'success');
+  } else {
+    // CREATE new user via Supabase Admin API (service role needed)
+    // Since we only have anon key, we use signUp then update profile
+    const name = $('um-name-new').value.trim();
+    const email = $('um-email-new').value.trim();
+    const pass = $('um-pass-new').value.trim();
+    const role = $('um-role').value;
+    const team = $('um-team').value.trim();
+    if(!name||!email||!pass){ toast('Please fill all required fields','error'); return; }
+    if(pass.length<6){ toast('Password must be at least 6 characters','error'); return; }
+
+    $('um-save-btn').textContent = 'Creating...';
+    $('um-save-btn').disabled = true;
+
+    // Sign up new user (this creates their auth account)
+    const {data, error} = await sb.auth.signUp({email, password:pass, options:{data:{name}}});
+    if(error){ toast('Error: '+error.message,'error'); $('um-save-btn').textContent='Create User'; $('um-save-btn').disabled=false; return; }
+
+    if(data.user){
+      // Upsert profile with correct role
+      await sb.from('profiles').upsert({id:data.user.id, email, name, role, team, is_active:true});
+    }
+    $('um-save-btn').textContent = 'Create User';
+    $('um-save-btn').disabled = false;
+    // Show credentials to admin
+    toast(`✅ User created! Share: ${email} / ${pass}`, 'success');
+    setTimeout(()=>alert(`✅ User Created!\n\nShare these login details with ${name}:\n\nEmail: ${email}\nPassword: ${pass}\nLink: ${window.location.href}\n\n⚠ Ask them to change their password after first login.`), 500);
+  }
+  closeUserModal();
+  loadUsers();
+}
+
+// ── Reset Password ──
+function openResetModal(id, name){
+  $('reset-user-id').value = id;
+  $('reset-modal-sub').textContent = `Resetting password for ${name}`;
+  $('reset-pass').value = '';
+  $('reset-modal').classList.add('open');
+}
+
+async function doResetPassword(){
+  const id = $('reset-user-id').value;
+  const pass = $('reset-pass').value.trim();
+  if(!pass||pass.length<6){ toast('Password must be at least 6 characters','error'); return; }
+  // Update password using admin API — requires service role
+  // With anon key, show instructions instead
+  const u = allUsers.find(x=>x.id===id);
+  $('reset-modal').classList.remove('open');
+  alert(`Password Reset Instructions:\n\n1. Go to Supabase Dashboard → Authentication → Users\n2. Find ${u?.email}\n3. Click the 3-dot menu → "Send password reset"\n\nOr ask the user to use "Forgot Password" on the login page.\n\nNew temp password you set: ${pass}\n(Note: Requires Supabase service role key to apply directly)`);
+  toast('See instructions in popup','success');
+}
+
+async function toggleUserActive(id, active){
+  const u = allUsers.find(x=>x.id===id);
+  await sb.from('profiles').update({is_active:active}).eq('id',id);
+  loadUsers();
+  toast(`${u?.name} ${active?'activated ✅':'deactivated 🚫'}`, active?'success':'');
+}
+
+// ══════════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════════
+async function updateProfile(){
+  const name=$('prof-name').value.trim(), team=$('prof-team').value.trim();
+  if(!name){ toast('Name cannot be empty','error'); return; }
+  const {error}=await sb.from('profiles').update({name,team}).eq('id',currentUser.id);
+  if(error){ toast('Error: '+error.message,'error'); return; }
+  currentProfile.name=name; currentProfile.team=team;
+  $('nav-name').textContent=name;
+  $('nav-avatar').textContent=initials(name);
+  toast('Profile updated!','success');
+}
+
+// ══════════════════════════════════════════
+// EXPORT CSV
+// ══════════════════════════════════════════
+function exportCSV(){
+  const h=['Tracker ID','Title','Description','Project','Type','Complexity','Est Hours','Start','End','Status','Assignee','Team','Comments'];
+  const rows=allTasks.map(t=>[t.tracker_id,t.title,t.description,t.project,t.task_type,t.complexity,t.estimated_hours,t.start_date,t.end_date,t.status,t.assigned_name||t.assigned_to,t.team,t.comments].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(','));
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent([h.join(','),...rows].join('\n'));
+  a.download=`vegam_tasks_${today()}.csv`; a.click(); toast('CSV exported!','success');
+}
+
+// ══════════════════════════════════════════
+// CLOSE MODALS ON BG CLICK
+// ══════════════════════════════════════════
+$('task-modal').addEventListener('click',e=>{ if(e.target===$('task-modal')) closeTaskModal(); });
+$('user-modal').addEventListener('click',e=>{ if(e.target===$('user-modal')) closeUserModal(); });
+$('reset-modal').addEventListener('click',e=>{ if(e.target===$('reset-modal')) $('reset-modal').classList.remove('open'); });
+document.addEventListener('change', e=>{ if(e.target.id==='um-role') updateRolePreview(); });
+
+// Enter key on login
+$('si-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') signIn(); });
+$('si-email').addEventListener('keydown',e=>{ if(e.key==='Enter') signIn(); });
+
+// ══════════════════════════════════════════
+// AUTO LOGIN CHECK
+// ══════════════════════════════════════════
+(async()=>{
+  const {data:{session}} = await sb.auth.getSession();
+  if(session?.user){
+    await loadProfile(session.user);
+  }
+})();
 </script>
 </body>
 </html>
