@@ -244,6 +244,119 @@ tr:hover td{background:#FAFBFF}
   .page{padding:16px}
   .topnav{padding:0 14px}
 }
+
+/* ══════════════════════════════
+   MOBILE STYLES (max 640px)
+══════════════════════════════ */
+@media(max-width:640px){
+  /* ── Login ── */
+  .login-box{width:100%;max-width:100%;padding:0 16px}
+  .login-logo{margin-bottom:22px}
+  .login-logo-icon{width:50px;height:50px;font-size:22px}
+  .login-logo-name{font-size:22px}
+  .login-card{padding:22px 18px;border-radius:16px}
+
+  /* ── Top Nav — hide tabs, show hamburger ── */
+  .topnav{padding:0 16px;height:54px;position:fixed;top:0;left:0;right:0;z-index:300}
+  .nav-tabs{display:none}
+  .nav-divider{display:none}
+  .nav-logo-text{font-size:15px}
+  .user-pill span:not(.role-pill){display:none}
+  .user-pill{padding:4px 8px 4px 4px}
+  .role-pill{display:none}
+  .btn-signout{font-size:11px;padding:5px 10px}
+  #hamburger-btn{display:flex}
+
+  /* ── Mobile drawer nav ── */
+  #mobile-nav-drawer{display:flex}
+
+  /* ── Bottom nav bar ── */
+  #bottom-nav{display:flex}
+
+  /* ── Pages ── */
+  .page{padding:14px 14px 80px 14px;margin-top:54px}
+  .page-header{flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:16px}
+  .page-title{font-size:18px}
+
+  /* ── Stats grid ── */
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  #my-stats{grid-template-columns:repeat(2,1fr)!important}
+
+  /* ── Charts ── */
+  .charts-row,.charts-row-3{grid-template-columns:1fr;gap:12px}
+  .chart-card{padding:16px}
+
+  /* ── Tables → card style on mobile ── */
+  .table-card{border-radius:var(--radius-sm)}
+  .table-toolbar{padding:10px 14px;gap:8px}
+  .table-responsive-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:600px}
+  th,td{padding:9px 12px;font-size:12px}
+
+  /* ── Task cards ── */
+  .task-cards-grid{grid-template-columns:1fr;gap:12px}
+
+  /* ── User grid ── */
+  .user-grid{grid-template-columns:1fr;gap:12px}
+
+  /* ── Form ── */
+  .form-card{padding:18px 16px}
+  .form-grid{grid-template-columns:1fr}
+  .form-actions{flex-direction:column-reverse}
+  .form-actions .btn{width:100%;justify-content:center}
+
+  /* ── Modal ── */
+  .modal{width:100%!important;max-width:100%!important;border-radius:20px 20px 0 0;position:fixed;bottom:0;left:0;right:0;max-height:92vh;margin:0}
+  .modal-overlay{align-items:flex-end}
+  .modal-body{padding:16px 20px 32px}
+  .modal-head{padding:18px 20px 0}
+
+  /* ── Buttons ── */
+  .btn{padding:9px 14px;font-size:13px}
+  .page-header .btn{width:100%;justify-content:center}
+
+  /* ── User stats bar ── */
+  #page-users > div:nth-child(2){overflow-x:auto;padding-bottom:4px;flex-wrap:nowrap!important}
+
+  /* ── Search/filter wrap ── */
+  .search-wrap input{width:120px}
+  .fsel{font-size:11px;padding:5px 8px}
+
+  /* ── Alert banner ── */
+  .alert-banner{padding:12px 14px}
+
+  /* ── Toast ── */
+  .toast{left:16px;right:16px;bottom:76px;text-align:center}
+}
+/* ── Hamburger btn (hidden on desktop) ── */
+#hamburger-btn{display:none;background:none;border:none;cursor:pointer;flex-direction:column;gap:5px;padding:6px;margin-left:4px}
+#hamburger-btn span{display:block;width:20px;height:2px;background:var(--text);border-radius:2px;transition:all 0.2s}
+
+/* ── Mobile nav drawer ── */
+#mobile-nav-drawer{display:none;position:fixed;inset:0;z-index:500;flex-direction:column}
+#mobile-nav-drawer.open{display:flex}
+.drawer-backdrop{position:absolute;inset:0;background:rgba(15,18,37,0.5);backdrop-filter:blur(4px)}
+.drawer-panel{position:absolute;top:0;left:0;bottom:0;width:75%;max-width:280px;background:var(--surface);box-shadow:var(--shadow-lg);padding:0;display:flex;flex-direction:column;animation:slideInLeft 0.25s ease}
+@keyframes slideInLeft{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+.drawer-header{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.drawer-user-avatar{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff}
+.drawer-user-name{font-size:15px;font-weight:700}
+.drawer-user-role{font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace}
+.drawer-tabs{padding:12px 10px;flex:1}
+.drawer-tab{width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-xs);border:none;background:none;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;text-align:left;margin-bottom:4px}
+.drawer-tab:hover{background:var(--surface2);color:var(--text)}
+.drawer-tab.active{background:var(--accent-light);color:var(--accent)}
+.drawer-tab-icon{font-size:18px;width:24px;text-align:center}
+.drawer-footer{padding:16px;border-top:1px solid var(--border)}
+.drawer-signout{width:100%;padding:10px;background:var(--red-bg);border:1.5px solid var(--red-border);border-radius:var(--radius-xs);color:var(--red);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* ── Bottom nav bar (mobile only) ── */
+#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:62px;background:var(--surface);border-top:1px solid var(--border);z-index:200;padding:0 8px;align-items:center;justify-content:space-around;box-shadow:0 -4px 16px rgba(0,0,0,0.06)}
+.bottom-tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;border:none;background:none;cursor:pointer;font-family:inherit;border-radius:10px;transition:all 0.15s;min-width:50px}
+.bottom-tab-icon{font-size:20px;line-height:1}
+.bottom-tab-label{font-size:9px;font-weight:600;color:var(--text3);letter-spacing:0.3px}
+.bottom-tab.active .bottom-tab-icon{transform:scale(1.1)}
+.bottom-tab.active .bottom-tab-label{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -320,6 +433,9 @@ tr:hover td{background:#FAFBFF}
     <div class="nav-divider"></div>
     <div class="nav-tabs" id="nav-tabs"></div>
     <div class="nav-right">
+      <button id="hamburger-btn" onclick="toggleDrawer()">
+        <span></span><span></span><span></span>
+      </button>
       <div class="user-pill" id="user-pill">
         <div class="user-avatar" id="nav-avatar"></div>
         <span id="nav-name"></span>
@@ -493,9 +609,28 @@ tr:hover td{background:#FAFBFF}
     </div>
   </div>
 
+<!-- MOBILE DRAWER NAV -->
+<div id="mobile-nav-drawer">
+  <div class="drawer-backdrop" onclick="closeDrawer()"></div>
+  <div class="drawer-panel">
+    <div class="drawer-header">
+      <div class="drawer-user-avatar" id="drawer-avatar"></div>
+      <div>
+        <div class="drawer-user-name" id="drawer-name"></div>
+        <div class="drawer-user-role" id="drawer-role"></div>
+      </div>
+    </div>
+    <div class="drawer-tabs" id="drawer-tabs"></div>
+    <div class="drawer-footer">
+      <button class="drawer-signout" onclick="signOut()">Sign Out</button>
+    </div>
+  </div>
 </div>
 
-<!-- TASK MODAL -->
+<!-- BOTTOM NAV BAR (mobile) -->
+<div id="bottom-nav"></div>
+
+</div><!-- end screen-app -->
 <div class="modal-overlay" id="task-modal">
   <div class="modal">
     <div class="modal-head">
@@ -826,6 +961,7 @@ function initApp(){
   $('nav-role').className = `role-pill role-${p.role}`;
   $('dash-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   buildNav();
+  buildMobileNav();
   // Load profile page data
   $('prof-name').value = p.name;
   $('prof-email').value = p.email;
@@ -856,7 +992,7 @@ function buildNav(){
 // ══════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════
-function showPage(id){
+function _showPageCore(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   $(`page-${id}`)?.classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
@@ -1384,8 +1520,66 @@ $('si-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') signIn(); });
 $('si-email').addEventListener('keydown',e=>{ if(e.key==='Enter') signIn(); });
 
 // ══════════════════════════════════════════
-// AUTO LOGIN CHECK
+// MOBILE NAV
 // ══════════════════════════════════════════
+const MOBILE_TABS = {
+  admin:    [{id:'dashboard',icon:'📊',label:'Dashboard'},{id:'tasks',icon:'📋',label:'Tasks'},{id:'users',icon:'👥',label:'Users'},{id:'profile',icon:'⚙',label:'Profile'}],
+  manager:  [{id:'dashboard',icon:'📊',label:'Dashboard'},{id:'tasks',icon:'📋',label:'Tasks'},{id:'profile',icon:'⚙',label:'Profile'}],
+  developer:[{id:'my-tasks',icon:'📋',label:'My Tasks'},{id:'profile',icon:'⚙',label:'Profile'}],
+  tester:   [{id:'my-tasks',icon:'📋',label:'My Tasks'},{id:'profile',icon:'⚙',label:'Profile'}],
+};
+
+function buildMobileNav(){
+  const r = currentProfile.role;
+  const tabs = MOBILE_TABS[r]||MOBILE_TABS.developer;
+
+  // Drawer tabs
+  $('drawer-avatar').style.background = avatarColor(currentProfile.name);
+  $('drawer-avatar').textContent = initials(currentProfile.name);
+  $('drawer-name').textContent = currentProfile.name;
+  $('drawer-role').textContent = currentProfile.role.toUpperCase();
+  $('drawer-tabs').innerHTML = tabs.map(t=>`
+    <button class="drawer-tab" id="drawer-${t.id}" onclick="showPage('${t.id}');closeDrawer()">
+      <span class="drawer-tab-icon">${t.icon}</span>${t.label}
+    </button>`).join('');
+
+  // Bottom nav (max 4 items)
+  $('bottom-nav').innerHTML = tabs.slice(0,4).map(t=>`
+    <button class="bottom-tab" id="bottom-${t.id}" onclick="showPage('${t.id}')">
+      <span class="bottom-tab-icon">${t.icon}</span>
+      <span class="bottom-tab-label">${t.label}</span>
+    </button>`).join('');
+}
+
+function toggleDrawer(){
+  $('mobile-nav-drawer').classList.toggle('open');
+}
+function closeDrawer(){
+  $('mobile-nav-drawer').classList.remove('open');
+}
+
+// Update active state on bottom nav + drawer
+function showPage(id){
+  _showPageCore(id);
+  // Bottom nav active
+  document.querySelectorAll('.bottom-tab').forEach(t=>t.classList.remove('active'));
+  $(`bottom-${id}`)?.classList.add('active');
+  // Drawer active
+  document.querySelectorAll('.drawer-tab').forEach(t=>t.classList.remove('active'));
+  $(`drawer-${id}`)?.classList.add('active');
+}
+
+// Also wrap table divs for mobile scroll
+function wrapTables(){
+  document.querySelectorAll('.table-card table').forEach(t=>{
+    if(!t.parentElement.classList.contains('table-responsive-wrap')){
+      const wrap=document.createElement('div');
+      wrap.className='table-responsive-wrap';
+      t.parentNode.insertBefore(wrap,t);
+      wrap.appendChild(t);
+    }
+  });
+}
 (async()=>{
   const {data:{session}} = await sb.auth.getSession();
   if(session?.user){
