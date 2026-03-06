@@ -166,13 +166,40 @@ tr:hover td{background:#FAFBFF}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:768px){
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-  .charts-row,.charts-row-2{grid-template-columns:1fr}
-  .page{padding:16px}
-  .topbar{padding:0 16px}
-}
+/* ── TEAMS ── */
+.btn-primary-sm{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:linear-gradient(135deg,var(--accent),var(--purple));border:none;border-radius:var(--radius-xs);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;box-shadow:0 4px 12px rgba(79,70,229,0.25)}
+.btn-primary-sm:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,70,229,0.35)}
+.teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.team-card-ct{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);transition:transform 0.15s,box-shadow 0.15s;position:relative;overflow:hidden}
+.team-card-ct:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.team-card-ct::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.team-card-actions{display:flex;gap:6px}
+.team-btn{padding:6px 14px;border-radius:var(--radius-xs);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;border:1.5px solid}
+.team-btn-view{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
+.team-btn-view:hover{background:var(--accent);color:#fff}
+.team-btn-edit{background:var(--surface2);color:var(--text2);border-color:var(--border2)}
+.team-btn-edit:hover{border-color:var(--accent);color:var(--accent)}
+.team-btn-del{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+.team-btn-del:hover{background:var(--red);color:#fff}
+.member-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:100px;padding:4px 10px;font-size:12px;font-weight:500}
+.member-chip-remove{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;line-height:1;padding:0;margin-left:2px;transition:color 0.15s}
+.member-chip-remove:hover{color:var(--red)}
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,18,37,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity 0.2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);transform:translateY(20px);transition:transform 0.25s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-head-ct{padding:22px 24px 0;display:flex;align-items:flex-start;justify-content:space-between}
+.modal-title-ct{font-size:17px;font-weight:800;letter-spacing:-0.3px}
+.modal-sub-ct{font-size:12px;color:var(--text2);margin-top:2px}
+.modal-x-ct{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border2);background:transparent;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all 0.15s}
+.modal-x-ct:hover{background:var(--surface2);color:var(--text)}
+.modal-body-ct{padding:18px 24px 24px}
+.form-label-ct{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px}
+.form-input-ct{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-xs);padding:9px 13px;font-size:13.5px;font-family:inherit;color:var(--text);outline:none;transition:border-color 0.15s}
+.form-input-ct:focus{border-color:var(--accent)}
+
+@media(max-width:768px){.teams-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -199,6 +226,7 @@ tr:hover td{background:#FAFBFF}
     <button class="nav-tab" onclick="showPage('tasks')" id="tab-tasks">📋 All Tasks</button>
     <button class="nav-tab" onclick="showPage('developers')" id="tab-developers">👥 Developers</button>
     <button class="nav-tab" onclick="showPage('projects')" id="tab-projects">🏗 Projects</button>
+    <button class="nav-tab" onclick="showPage('teams')" id="tab-teams">🏷 My Teams</button>
   </div>
   <div class="topbar-right">
     <div class="live-badge"><div class="live-dot"></div>LIVE</div>
@@ -301,6 +329,121 @@ tr:hover td{background:#FAFBFF}
   </div>
 </div>
 
+<!-- TEAMS PAGE -->
+<div class="page" id="page-teams">
+  <div style="padding:0">
+    <!-- Team Manager Panel -->
+    <div id="teams-manager">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <div style="font-size:20px;font-weight:800;letter-spacing:-0.4px">My Teams</div>
+          <div style="font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-top:2px">Create teams, assign developers, view team dashboards</div>
+        </div>
+        <button class="btn-primary-sm" onclick="openCreateTeamModal()">＋ Create New Team</button>
+      </div>
+
+      <!-- Teams grid -->
+      <div id="teams-list-grid"></div>
+
+      <!-- Empty state -->
+      <div id="teams-empty" style="display:block;text-align:center;padding:60px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
+        <div style="font-size:44px;margin-bottom:12px;opacity:0.3">🏷</div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:6px">No teams yet</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:20px">Create your first team and assign developers to it</div>
+        <button class="btn-primary-sm" onclick="openCreateTeamModal()">＋ Create Team</button>
+      </div>
+    </div>
+
+    <!-- Team Detail View -->
+    <div id="team-detail-view" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+        <button onclick="backToTeams()" style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-xs);padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">← Back to Teams</button>
+        <div id="team-detail-title" style="font-size:20px;font-weight:800;letter-spacing:-0.4px"></div>
+        <div id="team-detail-badge" style="padding:3px 12px;border-radius:100px;font-size:12px;font-weight:600"></div>
+      </div>
+
+      <!-- Team Stats -->
+      <div class="stats-grid" id="team-stats-grid" style="margin-bottom:22px"></div>
+
+      <!-- Team Charts -->
+      <div class="charts-row" style="margin-bottom:22px">
+        <div class="chart-card">
+          <div class="chart-title">Team Status Distribution</div>
+          <div class="chart-sub">Tasks by status for this team</div>
+          <div style="height:220px"><canvas id="teamPieChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Member Workload</div>
+          <div class="chart-sub">Tasks per member by status</div>
+          <div style="height:220px"><canvas id="teamDevChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Team Tasks Table -->
+      <div class="table-card">
+        <div class="table-toolbar">
+          <span class="table-title" id="team-table-title">Team Tasks</span>
+          <span class="count-badge" id="team-task-count">0</span>
+          <select class="filter-sel ml-auto" id="f-team-status" onchange="renderTeamTaskTable()">
+            <option value="">All Status</option>
+            <option>Completed/Closed</option><option>Completed</option>
+            <option>Development</option><option>Yet to start</option><option>Hold</option><option>Review</option>
+          </select>
+          <select class="filter-sel" id="f-team-member" onchange="renderTeamTaskTable()"><option value="">All Members</option></select>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>CR/Bug ID</th><th>Developer</th><th>Project</th><th>Description</th><th>Type</th><th>Complexity</th><th>End Date</th><th>Status</th></tr></thead>
+            <tbody id="team-task-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE TEAM MODAL -->
+<div class="modal-overlay" id="create-team-modal">
+  <div class="modal" style="width:520px">
+    <div class="modal-head-ct">
+      <div>
+        <div class="modal-title-ct">Create New Team</div>
+        <div class="modal-sub-ct">Give your team a name, color and add members</div>
+      </div>
+      <button class="modal-x-ct" onclick="closeCreateTeamModal()">✕</button>
+    </div>
+    <div class="modal-body-ct">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px;align-items:end">
+        <div>
+          <label class="form-label-ct">Team Name <em style="color:var(--accent)">*</em></label>
+          <input class="form-input-ct" id="ct-name" placeholder="e.g. Frontend Squad"/>
+        </div>
+        <div>
+          <label class="form-label-ct">Color</label>
+          <input type="color" class="form-input-ct" id="ct-color" value="#4F46E5" style="height:40px;padding:4px 6px;cursor:pointer;width:60px"/>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label class="form-label-ct">Add Members</label>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <select class="form-input-ct" id="ct-member-sel" style="flex:1"></select>
+          <button onclick="addMemberToNewTeam()" style="padding:9px 16px;background:var(--accent-light);color:var(--accent);border:1.5px solid var(--accent);border-radius:var(--radius-xs);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">＋ Add</button>
+        </div>
+      </div>
+
+      <div id="ct-members-list" style="display:flex;flex-wrap:wrap;gap:8px;min-height:40px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-xs);padding:10px;margin-bottom:20px">
+        <div id="ct-members-empty" style="font-size:12px;color:var(--text3);width:100%;text-align:center;padding:4px">No members added yet</div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px">
+        <button onclick="closeCreateTeamModal()" style="padding:9px 18px;background:transparent;border:1.5px solid var(--border2);border-radius:var(--radius-xs);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
+        <button onclick="saveNewTeam()" style="padding:9px 20px;background:linear-gradient(135deg,var(--accent),var(--purple));border:none;border-radius:var(--radius-xs);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Create Team ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════
 // CONFIG — paste your Google Sheets CSV URL
@@ -387,26 +530,37 @@ function mapRow(row) {
 async function loadData() {
   const btn = $('refresh-btn');
   btn.classList.add('spinning');
+
+  // Always show sample data immediately so loader disappears instantly
+  if(allTasks.length === 0) {
+    allTasks = getSampleData();
+    renderAll();
+    populateFilters();
+    $('loader').classList.add('hidden');
+    $('last-updated').textContent = 'Sample data loaded';
+  }
+
+  // Then try to fetch live data in background with a 5s timeout
   try {
-    const res = await fetch(SHEET_URL + '&t=' + Date.now());
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(SHEET_URL + '&t=' + Date.now(), { signal: controller.signal });
+    clearTimeout(timeout);
     if (!res.ok) throw new Error('Failed to fetch');
     const text = await res.text();
     const rows = parseCSV(text);
-    allTasks = rows.map(mapRow);
-    $('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
-    renderAll();
-    $('loader').classList.add('hidden');
-    populateFilters();
-  } catch(e) {
-    $('loader').classList.add('hidden');
-    // Use sample data if fetch fails (CORS issue in preview)
-    if(allTasks.length === 0) {
-      allTasks = getSampleData();
+    if(rows.length > 0) {
+      allTasks = rows.map(mapRow);
+      $('last-updated').textContent = '🟢 Live · ' + new Date().toLocaleTimeString();
       renderAll();
       populateFilters();
-      toast('⚠ Using sample data — CORS blocked in preview. Works on GitHub Pages!');
-    } else {
-      toast('Could not refresh — showing last data');
+      $('loader').classList.add('hidden');
+      toast('✅ Live data loaded!');
+    }
+  } catch(e) {
+    // Silently keep showing sample/last data — no blocking
+    if($('last-updated').textContent.includes('Sample')) {
+      $('last-updated').textContent = '⚠ Sample data (add sheet URL to go live)';
     }
   }
   btn.classList.remove('spinning');
@@ -782,17 +936,257 @@ function renderProjectCards() {
 // ══════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════
-function showPage(id) {
+function _showPageBase(id) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   $('page-'+id).classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   $('tab-'+id).classList.add('active');
 }
 
+
 // ══════════════════════════════════════════
-// AUTO REFRESH
+// TEAMS FEATURE
 // ══════════════════════════════════════════
-setInterval(loadData, REFRESH_INTERVAL);
+let userTeams = JSON.parse(localStorage.getItem('vegam_teams') || '[]');
+let currentTeamId = null;
+let newTeamMembers = [];
+let teamCharts = {};
+
+function saveTeams(){ try{ localStorage.setItem('vegam_teams', JSON.stringify(userTeams)); }catch(e){} }
+function destroyTeamChart(k){ if(teamCharts[k]){ teamCharts[k].destroy(); delete teamCharts[k]; } }
+
+// ── Render teams list ──
+function renderTeamsList(){
+  const grid = $('teams-list-grid');
+  const empty = $('teams-empty');
+  if(!userTeams.length){ grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  grid.innerHTML = `<div class="teams-grid">${userTeams.map(team=>{
+    const members = team.members || [];
+    const teamTasks = allTasks.filter(t=>members.includes(t.name));
+    const total = teamTasks.length;
+    const done = teamTasks.filter(t=>normalizeStatus(t.status)==='completed').length;
+    const dev = teamTasks.filter(t=>normalizeStatus(t.status)==='development').length;
+    const yts = teamTasks.filter(t=>normalizeStatus(t.status)==='yts').length;
+    const hold = teamTasks.filter(t=>normalizeStatus(t.status)==='hold').length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    return `<div class="team-card-ct" style="--team-color:${team.color}">
+      <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${team.color};border-radius:var(--radius) var(--radius) 0 0"></div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:40px;height:40px;border-radius:10px;background:${team.color}22;border:2px solid ${team.color}44;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:${team.color}">${team.name.charAt(0).toUpperCase()}</div>
+          <div>
+            <div style="font-size:15px;font-weight:700">${team.name}</div>
+            <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace">${members.length} member${members.length!==1?'s':''} · ${total} tasks</div>
+          </div>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:${team.color}">${pct}%</div>
+      </div>
+
+      <!-- member avatars -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+        ${members.map(m=>`<div style="display:flex;align-items:center;gap:5px;background:var(--surface2);border-radius:100px;padding:3px 10px 3px 4px;font-size:12px;font-weight:500">
+          <div style="width:20px;height:20px;border-radius:50%;background:${avatarColor(m)};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff">${initials(m)}</div>
+          ${m}
+        </div>`).join('')}
+        ${!members.length?'<span style="font-size:12px;color:var(--text3)">No members yet</span>':''}
+      </div>
+
+      <!-- mini progress bar -->
+      <div style="height:6px;border-radius:100px;background:var(--surface2);overflow:hidden;display:flex;margin-bottom:10px">
+        <div style="width:${total?done/total*100:0}%;background:var(--green)"></div>
+        <div style="width:${total?dev/total*100:0}%;background:var(--blue)"></div>
+        <div style="width:${total?yts/total*100:0}%;background:var(--yellow)"></div>
+        <div style="width:${total?hold/total*100:0}%;background:var(--orange)"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        ${[['✅',done,'var(--green)'],['⚡',dev,'var(--blue)'],['📋',yts,'var(--yellow)'],['⏸',hold,'var(--orange)']].map(([ic,n,c])=>`<span style="font-size:11px;color:${c};font-family:'JetBrains Mono',monospace">${ic} ${n}</span>`).join('')}
+      </div>
+
+      <div class="team-card-actions">
+        <button class="team-btn team-btn-view" onclick="viewTeamDashboard('${team.id}')">📊 View Dashboard</button>
+        <button class="team-btn team-btn-edit" onclick="editTeam('${team.id}')">✏ Edit</button>
+        <button class="team-btn team-btn-del" onclick="deleteTeam('${team.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── View team dashboard ──
+function viewTeamDashboard(teamId){
+  const team = userTeams.find(t=>t.id===teamId);
+  if(!team) return;
+  currentTeamId = teamId;
+  $('teams-manager').style.display='none';
+  $('team-detail-view').style.display='block';
+  $('team-detail-title').textContent = team.name;
+  $('team-detail-badge').style.cssText=`background:${team.color}18;color:${team.color};border:1px solid ${team.color}44;padding:3px 12px;border-radius:100px;font-size:12px;font-weight:600`;
+  $('team-detail-badge').textContent = `${team.members.length} members`;
+
+  const members = team.members;
+  const teamTasks = allTasks.filter(t=>members.includes(t.name));
+
+  // Stats
+  const total=teamTasks.length, done=teamTasks.filter(t=>normalizeStatus(t.status)==='completed').length;
+  const dev=teamTasks.filter(t=>normalizeStatus(t.status)==='development').length;
+  const yts=teamTasks.filter(t=>normalizeStatus(t.status)==='yts').length;
+  const hold=teamTasks.filter(t=>normalizeStatus(t.status)==='hold').length;
+  const overdue=teamTasks.filter(isOverdue).length;
+  const pct=total?Math.round(done/total*100):0;
+  $('team-stats-grid').innerHTML=`
+    <div class="stat-card sc-total"><div class="stat-icon" style="background:${team.color}18">#️⃣</div><div class="stat-num" style="color:${team.color}">${total}</div><div class="stat-label">Total Tasks</div><div class="stat-sub">${pct}% done</div></div>
+    <div class="stat-card sc-completed"><div class="stat-icon" style="background:var(--green-bg)">✅</div><div class="stat-num" style="color:var(--green)">${done}</div><div class="stat-label">Completed</div><div class="stat-sub">${pct}% of total</div></div>
+    <div class="stat-card sc-dev"><div class="stat-icon" style="background:var(--blue-bg)">⚡</div><div class="stat-num" style="color:var(--blue)">${dev}</div><div class="stat-label">In Development</div><div class="stat-sub">Active</div></div>
+    <div class="stat-card sc-yts"><div class="stat-icon" style="background:var(--yellow-bg)">📋</div><div class="stat-num" style="color:var(--yellow)">${yts}</div><div class="stat-label">Yet to Start</div><div class="stat-sub">Queued</div></div>
+    <div class="stat-card sc-overdue"><div class="stat-icon" style="background:var(--red-bg)">🚨</div><div class="stat-num" style="color:var(--red)">${overdue}</div><div class="stat-label">Overdue</div><div class="stat-sub">Past due date</div></div>
+    <div class="stat-card sc-hold"><div class="stat-icon" style="background:var(--orange-bg)">⏸</div><div class="stat-num" style="color:var(--orange)">${hold}</div><div class="stat-label">On Hold</div><div class="stat-sub">Blocked</div></div>`;
+
+  // Pie chart
+  const statusMap={};
+  teamTasks.forEach(t=>{ const s=normalizeStatus(t.status); const label=s==='completed'?'Completed':s==='development'?'Development':s==='yts'?'Yet to Start':s==='hold'?'Hold':s==='review'?'Review':t.status||'Other'; statusMap[label]=(statusMap[label]||0)+1; });
+  destroyTeamChart('pie');
+  teamCharts.pie = new Chart($('teamPieChart').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:Object.keys(statusMap),datasets:[{data:Object.values(statusMap),backgroundColor:['#10B981','#3B82F6','#F59E0B','#F97316','#8B5CF6','#94A3B8'],borderWidth:0,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'right',labels:{color:'#5A6080',font:{family:'Outfit',size:12},padding:12,usePointStyle:true,pointStyleWidth:8}},tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw}`}}}}
+  });
+
+  // Dev bar
+  const devMap={};
+  teamTasks.forEach(t=>{ if(!devMap[t.name]) devMap[t.name]={completed:0,development:0,yts:0,hold:0}; devMap[t.name][normalizeStatus(t.status)]++; });
+  const dLabels=Object.keys(devMap);
+  destroyTeamChart('dev');
+  teamCharts.dev = new Chart($('teamDevChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:dLabels,datasets:[
+      {label:'Completed',data:dLabels.map(d=>devMap[d].completed),backgroundColor:'#10B981',borderRadius:4},
+      {label:'Development',data:dLabels.map(d=>devMap[d].development),backgroundColor:'#3B82F6',borderRadius:4},
+      {label:'Yet to Start',data:dLabels.map(d=>devMap[d].yts),backgroundColor:'#F59E0B',borderRadius:4},
+      {label:'Hold',data:dLabels.map(d=>devMap[d].hold),backgroundColor:'#F97316',borderRadius:4},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5A6080',font:{family:'Outfit',size:11},usePointStyle:true,padding:10}}},
+      scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#9BA0BC',font:{family:'Outfit',size:11}}},y:{stacked:true,grid:{color:'#F0F2F8'},ticks:{color:'#9BA0BC',font:{family:'JetBrains Mono',size:9},stepSize:1}}}}
+  });
+
+  // Populate member filter
+  $('f-team-member').innerHTML='<option value="">All Members</option>'+members.map(m=>`<option>${m}</option>`).join('');
+  $('team-table-title').textContent = team.name+' — Tasks';
+  renderTeamTaskTable();
+}
+
+function renderTeamTaskTable(){
+  const team = userTeams.find(t=>t.id===currentTeamId);
+  if(!team) return;
+  const fS=$('f-team-status').value, fM=$('f-team-member').value;
+  const teamTasks = allTasks.filter(t=>team.members.includes(t.name)&&(!fS||t.status.toLowerCase().includes(fS.toLowerCase()))&&(!fM||t.name===fM));
+  $('team-task-count').textContent=teamTasks.length;
+  $('team-task-tbody').innerHTML = teamTasks.length ? teamTasks.map(t=>{
+    const over=isOverdue(t);
+    return `<tr style="${over?'background:#FFF9F9':''}">
+      <td><span class="tid">${t.crId}</span></td>
+      <td><div class="dev-cell"><div class="dev-avatar" style="background:${avatarColor(t.name)}">${initials(t.name)}</div><div><div class="dev-name">${t.name}</div></div></div></td>
+      <td><span class="proj-tag" style="background:${projColor(t.project)}18;color:${projColor(t.project)};font-size:11px">${t.project}</span></td>
+      <td><div style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px" title="${t.description}">${t.description}</div></td>
+      <td>${typeBadge(t.taskType)}</td>
+      <td>${complexBadge(t.complexity)}</td>
+      <td style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${over?'var(--red)':'var(--text2)'};white-space:nowrap">${fmt(t.endDate)}${over?' ⚠':''}</td>
+      <td>${statusBadge(t.status)}</td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text2)">No tasks found</td></tr>`;
+}
+
+function backToTeams(){
+  currentTeamId=null;
+  destroyTeamChart('pie'); destroyTeamChart('dev');
+  $('team-detail-view').style.display='none';
+  $('teams-manager').style.display='block';
+  renderTeamsList();
+}
+
+// ── Create team modal ──
+function openCreateTeamModal(){
+  newTeamMembers=[];
+  $('ct-name').value='';
+  $('ct-color').value='#4F46E5';
+  const allDevs=[...new Set(allTasks.map(t=>t.name).filter(Boolean))].sort();
+  $('ct-member-sel').innerHTML=allDevs.map(d=>`<option>${d}</option>`).join('');
+  renderNewTeamMembers();
+  $('create-team-modal').classList.add('open');
+}
+function closeCreateTeamModal(){ $('create-team-modal').classList.remove('open'); newTeamMembers=[]; }
+$('create-team-modal').addEventListener('click',e=>{ if(e.target===$('create-team-modal')) closeCreateTeamModal(); });
+
+function addMemberToNewTeam(){
+  const name=$('ct-member-sel').value;
+  if(!name||newTeamMembers.includes(name)){ toast('Member already added'); return; }
+  newTeamMembers.push(name);
+  renderNewTeamMembers();
+}
+function removeMemberFromNew(name){
+  newTeamMembers=newTeamMembers.filter(m=>m!==name);
+  renderNewTeamMembers();
+}
+function renderNewTeamMembers(){
+  const wrap=$('ct-members-list');
+  if(!newTeamMembers.length){ wrap.innerHTML='<div id="ct-members-empty" style="font-size:12px;color:var(--text3);width:100%;text-align:center;padding:4px">No members added yet</div>'; return; }
+  wrap.innerHTML=newTeamMembers.map(m=>`<div class="member-chip">
+    <div style="width:20px;height:20px;border-radius:50%;background:${avatarColor(m)};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff">${initials(m)}</div>
+    ${m}<button class="member-chip-remove" onclick="removeMemberFromNew('${m}')">×</button>
+  </div>`).join('');
+}
+
+function saveNewTeam(){
+  const name=$('ct-name').value.trim();
+  if(!name){ toast('Please enter a team name'); return; }
+  if(!newTeamMembers.length){ toast('Please add at least one member'); return; }
+  const team={ id:'team_'+Date.now(), name, color:$('ct-color').value, members:[...newTeamMembers], createdAt:new Date().toISOString() };
+  userTeams.push(team); saveTeams();
+  closeCreateTeamModal();
+  renderTeamsList();
+  toast(`✅ Team "${name}" created with ${newTeamMembers.length} members!`);
+}
+
+function deleteTeam(teamId){
+  const team=userTeams.find(t=>t.id===teamId);
+  if(!confirm(`Delete team "${team?.name}"?`)) return;
+  userTeams=userTeams.filter(t=>t.id!==teamId); saveTeams();
+  renderTeamsList();
+  toast('Team deleted');
+}
+
+function editTeam(teamId){
+  const team=userTeams.find(t=>t.id===teamId);
+  if(!team) return;
+  newTeamMembers=[...team.members];
+  $('ct-name').value=team.name;
+  $('ct-color').value=team.color;
+  const allDevs=[...new Set(allTasks.map(t=>t.name).filter(Boolean))].sort();
+  $('ct-member-sel').innerHTML=allDevs.map(d=>`<option>${d}</option>`).join('');
+  renderNewTeamMembers();
+  // override save to update instead of create
+  const saveBtn=document.querySelector('#create-team-modal button:last-child');
+  saveBtn.onclick=()=>{
+    const name=$('ct-name').value.trim();
+    if(!name||!newTeamMembers.length){ toast('Name and at least one member required'); return; }
+    team.name=name; team.color=$('ct-color').value; team.members=[...newTeamMembers];
+    saveTeams(); closeCreateTeamModal(); renderTeamsList();
+    toast(`Team "${name}" updated!`);
+    saveBtn.onclick=saveNewTeam;
+  };
+  document.querySelector('#create-team-modal .modal-title-ct').textContent='Edit Team';
+  $('create-team-modal').classList.add('open');
+}
+
+// showPage — handles all tabs including Teams
+function showPage(id){
+  _showPageBase(id);
+  if(id==='teams'){
+    $('teams-manager').style.display='block';
+    $('team-detail-view').style.display='none';
+    renderTeamsList();
+  }
+}
+
 
 // ══════════════════════════════════════════
 // INIT
